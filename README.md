@@ -23,8 +23,8 @@ Open <http://localhost:5173>. Demo accounts (local demo data):
 
 | `backend` | Storage | Use for |
 |---|---|---|
-| `'local'` (default) | Browser `localStorage` + IndexedDB, 26 fictional lecturers | Demo / UI work, zero setup |
-| `'gas'` | Google Sheets + Drive via Apps Script (`backend/Code.gs`) | Real shared data for now |
+| `'local'` | Browser `localStorage` + IndexedDB, 26 fictional lecturers | Demo / UI work, zero setup |
+| `'gas'` (default, live) | Google Sheets + Drive via Apps Script (`backend/Code.gs`) | Real shared data for now |
 | *(later)* SQL | MySQL — schema in `docs/schema.sql` | Final system |
 
 See [`backend/README.md`](backend/README.md) for the Google setup and the migration path to SQL.

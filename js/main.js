@@ -94,14 +94,19 @@ function updateChrome() {
   $$('[data-count]').forEach((el) => { const n = counts[el.dataset.count]; el.textContent = n ?? ''; el.hidden = n == null; });
 }
 
+let popsWired = false, closeAllPops = () => {};
 function wirePopovers() {
   const pops = [['#bell', '#bell-pop', bellHtml], ['#uchip', '#u-pop', userHtml]];
-  const closeAll = () => pops.forEach(([b, p]) => { $(p).innerHTML = ''; $(b).setAttribute('aria-expanded', 'false'); });
+  const closeAll = () => pops.forEach(([b, p]) => { const pe = $(p), be = $(b); if (pe) pe.innerHTML = ''; if (be) be.setAttribute('aria-expanded', 'false'); });
+  closeAllPops = closeAll;
   pops.forEach(([b, p, fn]) => {
     $(b).onclick = (e) => { e.stopPropagation(); const open = $(p).innerHTML !== ''; closeAll(); if (!open) { $(p).innerHTML = fn().s; $(b).setAttribute('aria-expanded', 'true'); const first = $(p + ' a,' + p + ' button'); first && first.focus(); } };
   });
-  document.addEventListener('click', (e) => { if (!e.target.closest('.pop')) closeAll(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(); });
+  if (!popsWired) { // document-level listeners are registered once; they always call the latest closeAll
+    popsWired = true;
+    document.addEventListener('click', (e) => { if (!e.target.closest('.pop')) closeAllPops(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllPops(); });
+  }
   $('#u-pop').addEventListener('click', async (e) => {
     const t = e.target.closest('[data-do]'); if (!t) return;
     if (t.dataset.do === 'logout') { await api.logout(); location.hash = '#/login'; }

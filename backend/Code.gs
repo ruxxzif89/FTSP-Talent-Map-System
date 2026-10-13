@@ -68,6 +68,13 @@ function setup() {
   Logger.log('Setup complete. Sign in as admin / admin and change the password immediately.');
 }
 
+/** Sets the admin account password to 'admin' (first-phase default). Run by hand if setup() ran earlier with another password. */
+function resetAdminPassword() {
+  var salt = uid_('s');
+  update_('users', 'usr_admin', { salt: salt, password_hash: hash_(salt, 'admin'), status: 'Active', updated_at: now_() });
+  Logger.log('Admin password is now: admin');
+}
+
 /** Wipes ALL data rows (keeps headers). Run by hand only. */
 function resetAllData() {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
