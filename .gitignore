@@ -1,0 +1,6 @@
+# Course submission documents (personal data) — keep local
+*.pdf
+WhatsApp Image*.jpeg
+.claude/settings.local.json
+node_modules/
+.DS_Store

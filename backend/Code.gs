@@ -1,0 +1,349 @@
+/**
+ * FSTP Talent Map — Google Apps Script backend (Google Sheets as the database).
+ * Mirrors js/local-server.js action-for-action, so the web UI works unchanged.
+ *
+ * ONE-TIME SETUP: paste this file into the Apps Script project, select `setup`, press Run,
+ * approve permissions, then Deploy > Manage deployments > edit > New version.
+ * Full steps: backend/README.md
+ */
+
+var SPREADSHEET_ID = '1LFZkj30JrlinLjcabWfZ-yEcO08EVwcDt2MPR0prRF0';
+var DRIVE_FOLDER_NAME = 'FSTP_Talent_Map_Files';
+var SESSION_SECONDS = 6 * 3600;          // CacheService maximum is 6 hours
+var MAX_FILE_BYTES = 5 * 1024 * 1024;
+var MAX_CELL_CHARS = 45000;              // a Sheets cell holds 50,000 characters
+
+// ---------- schema: one sheet per table; column names == SQL column names ----------
+var T = {
+  users:                ['id', 'username', 'email', 'full_name', 'role', 'department', 'status', 'salt', 'password_hash', 'last_login', 'created_at', 'updated_at'],
+  lecturers:            ['id', 'user_id', 'staff_id', 'full_name', 'email', 'department', 'position', 'phone', 'location', 'bio', 'photo', 'created_at', 'updated_at'],
+  expertise_categories: ['id', 'name', 'color', 'description', 'created_at', 'updated_at'],
+  expertise:            ['id', 'lecturer_id', 'category_id', 'area', 'level', 'years', 'interest', 'document_id', 'created_at', 'updated_at'],
+  research:             ['id', 'lecturer_id', 'title', 'area', 'category', 'year', 'status', 'description', 'document_id', 'created_at', 'updated_at'],
+  publications:         ['id', 'lecturer_id', 'title', 'type', 'venue', 'year', 'status', 'doi', 'document_id', 'created_at', 'updated_at'],
+  certifications:       ['id', 'lecturer_id', 'name', 'issuer', 'issue_date', 'expiry_date', 'cert_no', 'document_id', 'created_at', 'updated_at'],
+  training:             ['id', 'lecturer_id', 'name', 'organizer', 'date', 'status', 'duration_days', 'description', 'document_id', 'created_at', 'updated_at'],
+  consultancy:          ['id', 'lecturer_id', 'project', 'client', 'role', 'year', 'status', 'description', 'document_id', 'created_at', 'updated_at'],
+  achievements:         ['id', 'lecturer_id', 'name', 'category', 'year', 'description', 'document_id', 'created_at', 'updated_at'],
+  documents:            ['id', 'lecturer_id', 'doc_type', 'title', 'file_name', 'mime', 'size', 'file_ref', 'created_at', 'updated_at'],
+  activity_log:         ['id', 'lecturer_id', 'message', 'created_at']
+};
+var OWNED = ['expertise', 'research', 'publications', 'certifications', 'training', 'consultancy', 'achievements', 'documents', 'activity_log'];
+var SINGULAR = { expertise: 'expertise', research: 'research', publications: 'publication', certifications: 'certification', training: 'training', consultancy: 'consultancy', achievements: 'achievement', documents: 'document' };
+var NUMERIC = { years: 1, year: 1, duration_days: 1, size: 1 };
+var DEFAULT_CATEGORIES = [
+  ['Cybersecurity', '#1d5fd1'], ['Artificial Intelligence', '#7c3aed'], ['Networking', '#0891b2'], ['Database', '#16a34a'],
+  ['Digital Forensics', '#e11d48'], ['Software Engineering', '#ea580c'], ['Information Security', '#0f766e'], ['Data Science', '#ca8a04'],
+  ['Internet of Things', '#4f46e5'], ['Mathematics & Modelling', '#be185d'], ['Defence Technology', '#475569'], ['Others', '#64748b']
+];
+
+// =====================================================================
+// SETUP (run manually from the editor)
+// =====================================================================
+
+/** Creates every table (sheet) with headers, locks columns to plain text, seeds categories + the admin account. */
+function setup() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  Object.keys(T).forEach(function (name) {
+    var sh = ss.getSheetByName(name) || ss.insertSheet(name);
+    var cols = T[name];
+    sh.getRange(1, 1, 1, cols.length).setValues([cols]).setFontWeight('bold').setBackground('#0b2a5b').setFontColor('#ffffff');
+    // Plain-text format stops Sheets turning "2026-10-13" into a Date and "UPNM001" into anything clever.
+    sh.getRange(2, 1, sh.getMaxRows() - 1, cols.length).setNumberFormat('@');
+    NUMERIC && cols.forEach(function (c, i) { if (NUMERIC[c]) sh.getRange(2, i + 1, sh.getMaxRows() - 1, 1).setNumberFormat('0'); });
+    sh.setFrozenRows(1);
+    if (name === 'users') sh.hideColumns(8, 2);          // salt + password_hash: hide from casual viewers
+  });
+  var blank = ss.getSheetByName('Sheet1');
+  if (blank && ss.getSheets().length > 1 && blank.getLastRow() === 0) ss.deleteSheet(blank);
+
+  if (!rows_('expertise_categories').length) {
+    DEFAULT_CATEGORIES.forEach(function (c) { insert_('expertise_categories', { id: uid_('cat'), name: c[0], color: c[1], description: c[0] + ' and related topics.', created_at: now_(), updated_at: now_() }); });
+  }
+  if (!rows_('users').length) {
+    var salt = uid_('s');
+    insert_('users', { id: 'usr_admin', username: 'admin', email: 'admin@fstp.upnm.edu.my', full_name: 'Faculty Administrator', role: 'admin', department: 'Faculty Office', status: 'Active', salt: salt, password_hash: hash_(salt, 'Admin@123'), last_login: '', created_at: now_(), updated_at: now_() });
+  }
+  folder_();                                              // creates the Drive folder for uploads
+  Logger.log('Setup complete. Sign in as admin / Admin@123 and change the password immediately.');
+}
+
+/** Wipes ALL data rows (keeps headers). Run by hand only. */
+function resetAllData() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  Object.keys(T).forEach(function (n) { var sh = ss.getSheetByName(n); if (sh && sh.getLastRow() > 1) sh.deleteRows(2, sh.getLastRow() - 1); });
+  setup();
+}
+
+// =====================================================================
+// HTTP entry points
+// =====================================================================
+
+function doGet() { return json_({ ok: true, data: { service: 'FSTP Talent Map API', status: 'running', tables: Object.keys(T) } }); }
+
+function doPost(e) {
+  var out;
+  try {
+    var req = JSON.parse(e.postData.contents);
+    var fn = ACTIONS[req.action];
+    if (!fn) throw httpErr_('Unknown action: ' + req.action, 404);
+    var ctx = (req.action === 'login') ? null : session_(req.token);
+    var write = WRITES[req.action];
+    var lock = write ? LockService.getScriptLock() : null;
+    if (lock) lock.waitLock(20000);
+    try { out = { ok: true, data: fn(req.payload || {}, ctx, req.token) }; } finally { if (lock) lock.releaseLock(); }
+  } catch (err) {
+    out = { ok: false, error: err.publicMessage || 'Server error. Please try again.', code: err.code || 500 };
+    if (!err.publicMessage) console.error(err && err.stack || err);
+  }
+  return json_(out);
+}
+
+var WRITES = { create: 1, update: 1, remove: 1, upload: 1, createUser: 1, updateUser: 1, resetPassword: 1, changePassword: 1, deleteUser: 1 };
+
+// =====================================================================
+// Actions (same contract as js/local-server.js)
+// =====================================================================
+
+var ACTIONS = {
+  login: function (p) {
+    var key = String(p.username || '').trim().toLowerCase();
+    var u = rows_('users').filter(function (x) { return String(x.username).toLowerCase() === key || String(x.email).toLowerCase() === key; })[0];
+    if (!u || hash_(u.salt, String(p.password || '')) !== u.password_hash) throw httpErr_('Invalid username or password.', 401);
+    if (u.status !== 'Active') throw httpErr_('This account is inactive. Contact the administrator.', 403);
+    var token = Utilities.getUuid() + Utilities.getUuid();
+    CacheService.getScriptCache().put('tok:' + token, u.id, SESSION_SECONDS);
+    update_('users', u.id, { last_login: now_() });
+    return { token: token, user: safeUser_(u) };
+  },
+  logout: function (p, ctx, token) { CacheService.getScriptCache().remove('tok:' + token); return true; },
+  me: function (p, ctx) { return { user: safeUser_(ctx.user) }; },
+
+  snapshot: function (p, ctx) {
+    var admin = ctx.user.role === 'admin', lid = ctx.lecturer && ctx.lecturer.id, out = {};
+    out.users = admin ? rows_('users').map(safeUser_) : [safeUser_(ctx.user)];
+    out.lecturers = admin ? rows_('lecturers') : rows_('lecturers').filter(function (l) { return l.id === lid; });
+    out.expertise_categories = rows_('expertise_categories');
+    OWNED.forEach(function (t) { out[t] = admin ? rows_(t) : rows_(t).filter(function (r) { return r.lecturer_id === lid; }); });
+    return out;
+  },
+
+  create: function (p, ctx) {
+    var table = p.table, row = p.row || {};
+    if (table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || table === 'activity_log' || table === 'documents')) throw httpErr_('Invalid table.', 400);
+    var admin = ctx.user.role === 'admin';
+    if (table === 'expertise_categories') needAdmin_(ctx);
+    var r = clean_(table, row); r.id = uid_(table.slice(0, 3)); r.created_at = now_(); r.updated_at = now_();
+    if (OWNED.indexOf(table) >= 0) {
+      r.lecturer_id = admin ? row.lecturer_id : (ctx.lecturer && ctx.lecturer.id);
+      if (!r.lecturer_id || !find_('lecturers', r.lecturer_id)) throw httpErr_('Lecturer required.', 400);
+      if (r.document_id) assertOwnsDoc_(r.document_id, r.lecturer_id);
+    } else if (rows_(table).some(function (c) { return String(c.name).toLowerCase() === String(r.name).toLowerCase(); })) throw httpErr_('Category already exists.', 409);
+    insert_(table, r);
+    if (r.lecturer_id) log_(r.lecturer_id, 'Added new ' + SINGULAR[table]);
+    return r;
+  },
+
+  update: function (p, ctx) {
+    var table = p.table;
+    if (table !== 'lecturers' && table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || table === 'activity_log')) throw httpErr_('Invalid table.', 400);
+    var row = find_(table, p.id); if (!row) throw httpErr_('Record not found.', 404);
+    var admin = ctx.user.role === 'admin', mine = ctx.lecturer && ctx.lecturer.id;
+    if (table === 'expertise_categories') needAdmin_(ctx);
+    else if (table === 'lecturers') { if (!admin && row.id !== mine) throw httpErr_('Forbidden.', 403); }
+    else if (!admin && row.lecturer_id !== mine) throw httpErr_('Forbidden.', 403);
+    var patch = clean_(table, p.patch || {});
+    ['id', 'lecturer_id', 'user_id', 'created_at'].forEach(function (k) { delete patch[k]; });
+    if (table === 'lecturers' && !admin) delete patch.staff_id;
+    if (table === 'documents') patch = { title: patch.title, doc_type: patch.doc_type };
+    if (patch.document_id) assertOwnsDoc_(patch.document_id, row.lecturer_id);
+    patch.updated_at = now_();
+    var saved = update_(table, p.id, patch);
+    if (table === 'lecturers') {
+      update_('users', saved.user_id, { full_name: saved.full_name, email: saved.email, department: saved.department });
+      log_(saved.id, 'Updated profile information');
+    } else if (saved.lecturer_id) log_(saved.lecturer_id, 'Updated ' + SINGULAR[table] + ' information');
+    return saved;
+  },
+
+  remove: function (p, ctx) {
+    var table = p.table;
+    if (table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || table === 'activity_log')) throw httpErr_('Invalid table.', 400);
+    var row = find_(table, p.id); if (!row) throw httpErr_('Record not found.', 404);
+    var admin = ctx.user.role === 'admin';
+    if (table === 'expertise_categories') {
+      needAdmin_(ctx);
+      if (rows_('expertise').some(function (e) { return e.category_id === p.id; })) throw httpErr_('Category is in use by lecturer expertise records and cannot be deleted.', 409);
+    } else if (!admin && row.lecturer_id !== (ctx.lecturer && ctx.lecturer.id)) throw httpErr_('Forbidden.', 403);
+    if (table === 'documents') {
+      trashFile_(row.file_ref);
+      OWNED.forEach(function (t) { if (t === 'documents' || t === 'activity_log') return; rows_(t).forEach(function (x) { if (x.document_id === p.id) update_(t, x.id, { document_id: '' }); }); });
+    }
+    delete_(table, p.id);
+    if (row.lecturer_id) log_(row.lecturer_id, 'Removed ' + SINGULAR[table]);
+    return { id: p.id };
+  },
+
+  upload: function (p, ctx) {
+    var admin = ctx.user.role === 'admin', lid = admin ? p.lecturer_id : (ctx.lecturer && ctx.lecturer.id);
+    if (!lid || !find_('lecturers', lid)) throw httpErr_('Lecturer required.', 400);
+    if (Number(p.size) > MAX_FILE_BYTES) throw httpErr_('File exceeds 5 MB.', 400);
+    var m = /^data:([\w\/+.\-]+);base64,(.+)$/.exec(String(p.dataUrl || ''));
+    var okMime = /^(application\/pdf|image\/png|image\/jpeg|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document)$/;
+    if (!m || !okMime.test(m[1])) throw httpErr_('Unsupported file type.', 400);
+    var bytes = Utilities.base64Decode(m[2]);
+    if (bytes.length > MAX_FILE_BYTES) throw httpErr_('File exceeds 5 MB.', 400);
+    var safeName = String(p.file_name || 'file').replace(/[^\w.\- ]/g, '_').slice(0, 120);
+    var file = folder_().createFile(Utilities.newBlob(bytes, m[1], lid + '_' + Date.now() + '_' + safeName));
+    var row = { id: uid_('doc'), lecturer_id: lid, doc_type: String(p.doc_type || 'Other'), title: String(p.title || safeName), file_name: safeName, mime: m[1], size: bytes.length, file_ref: file.getId(), created_at: now_(), updated_at: now_() };
+    insert_('documents', row); log_(lid, 'Uploaded document');
+    delete row.file_ref;               // never expose Drive ids to the browser
+    return row;
+  },
+
+  download: function (p, ctx) {
+    var d = find_('documents', p.id); if (!d) throw httpErr_('Document not found.', 404);
+    if (ctx.user.role !== 'admin' && d.lecturer_id !== (ctx.lecturer && ctx.lecturer.id)) throw httpErr_('Forbidden.', 403);
+    var blob = DriveApp.getFileById(d.file_ref).getBlob();
+    return { file_name: d.file_name, mime: d.mime, dataUrl: 'data:' + d.mime + ';base64,' + Utilities.base64Encode(blob.getBytes()) };
+  },
+
+  createUser: function (p, ctx) {
+    needAdmin_(ctx);
+    var u = p.user || {};
+    if (!u.username || !u.email || !u.full_name || !u.password) throw httpErr_('Missing required fields.', 400);
+    if (String(u.password).length < 8) throw httpErr_('Password must be at least 8 characters.', 400);
+    var all = rows_('users');
+    if (all.some(function (x) { return String(x.username).toLowerCase() === String(u.username).toLowerCase(); })) throw httpErr_('Username already taken.', 409);
+    if (all.some(function (x) { return String(x.email).toLowerCase() === String(u.email).toLowerCase(); })) throw httpErr_('Email already registered.', 409);
+    var role = u.role === 'admin' ? 'admin' : 'lecturer', salt = uid_('s');
+    var row = { id: uid_('usr'), username: u.username, email: u.email, full_name: u.full_name, role: role, department: u.department || '', status: u.status || 'Active', salt: salt, password_hash: hash_(salt, u.password), last_login: '', created_at: now_(), updated_at: now_() };
+    insert_('users', row);
+    if (role === 'lecturer') {
+      var n = rows_('lecturers').length + 1;
+      insert_('lecturers', { id: uid_('lec'), user_id: row.id, staff_id: 'UPNM' + ('000' + n).slice(-3), full_name: row.full_name, email: row.email, department: row.department, position: 'Lecturer', phone: '', location: '', bio: '', photo: '', created_at: now_(), updated_at: now_() });
+    }
+    return safeUser_(row);
+  },
+
+  updateUser: function (p, ctx) {
+    needAdmin_(ctx);
+    var u = find_('users', p.id); if (!u) throw httpErr_('User not found.', 404);
+    var patch = p.patch || {};
+    if (u.id === ctx.user.id && patch.status && patch.status !== 'Active') throw httpErr_('You cannot deactivate your own account.', 400);
+    if (patch.email && rows_('users').some(function (x) { return x.id !== u.id && String(x.email).toLowerCase() === String(patch.email).toLowerCase(); })) throw httpErr_('Email already registered.', 409);
+    var set = { updated_at: now_() };
+    ['full_name', 'email', 'department', 'status'].forEach(function (k) { if (patch[k] !== undefined) set[k] = patch[k]; });
+    var saved = update_('users', u.id, set);
+    var l = rows_('lecturers').filter(function (x) { return x.user_id === u.id; })[0];
+    if (l) update_('lecturers', l.id, { full_name: saved.full_name, email: saved.email, department: saved.department, updated_at: now_() });
+    return safeUser_(saved);
+  },
+
+  resetPassword: function (p, ctx) {
+    needAdmin_(ctx);
+    if (!p.password || String(p.password).length < 8) throw httpErr_('Password must be at least 8 characters.', 400);
+    if (!find_('users', p.id)) throw httpErr_('User not found.', 404);
+    var salt = uid_('s'); update_('users', p.id, { salt: salt, password_hash: hash_(salt, p.password), updated_at: now_() });
+    return true;
+  },
+
+  changePassword: function (p, ctx) {
+    if (!p.password || String(p.password).length < 8) throw httpErr_('Password must be at least 8 characters.', 400);
+    if (hash_(ctx.user.salt, String(p.current || '')) !== ctx.user.password_hash) throw httpErr_('Current password is incorrect.', 400);
+    var salt = uid_('s'); update_('users', ctx.user.id, { salt: salt, password_hash: hash_(salt, p.password), updated_at: now_() });
+    return true;
+  },
+
+  deleteUser: function (p, ctx) {
+    needAdmin_(ctx);
+    if (p.id === ctx.user.id) throw httpErr_('You cannot delete your own account.', 400);
+    var lec = rows_('lecturers').filter(function (l) { return l.user_id === p.id; })[0];
+    if (lec) {
+      rows_('documents').filter(function (d) { return d.lecturer_id === lec.id; }).forEach(function (d) { trashFile_(d.file_ref); });
+      OWNED.forEach(function (t) { deleteWhere_(t, 'lecturer_id', lec.id); });
+      delete_('lecturers', lec.id);
+    }
+    delete_('users', p.id);
+    return { id: p.id };
+  }
+};
+
+// =====================================================================
+// Helpers: sheet access
+// =====================================================================
+
+function sheet_(t) {
+  var sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(t);
+  if (!sh) throw httpErr_('Database not initialised. Run setup() in Apps Script.', 500);
+  return sh;
+}
+function rows_(t) {
+  var sh = sheet_(t), last = sh.getLastRow(), cols = T[t];
+  if (last < 2) return [];
+  return sh.getRange(2, 1, last - 1, cols.length).getValues().map(function (v) {
+    var o = {}; cols.forEach(function (c, i) { o[c] = NUMERIC[c] && v[i] !== '' ? Number(v[i]) : (v[i] instanceof Date ? v[i].toISOString() : v[i]); }); return o;
+  }).filter(function (o) { return o.id !== ''; });
+}
+function find_(t, id) { return rows_(t).filter(function (r) { return r.id === id; })[0]; }
+function toArr_(t, o) { return T[t].map(function (c) { return o[c] === undefined || o[c] === null ? '' : o[c]; }); }
+function insert_(t, o) {
+  Object.keys(o).forEach(function (k) { if (typeof o[k] === 'string' && o[k].length > MAX_CELL_CHARS) throw httpErr_('A value is too large to store (' + k + ').', 400); });
+  sheet_(t).appendRow(toArr_(t, o));
+}
+function rowIndex_(t, id) {
+  var sh = sheet_(t), last = sh.getLastRow(); if (last < 2) return -1;
+  var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) if (ids[i][0] === id) return i + 2;
+  return -1;
+}
+function update_(t, id, patch) {
+  var idx = rowIndex_(t, id); if (idx < 0) throw httpErr_('Record not found.', 404);
+  var sh = sheet_(t), cols = T[t], range = sh.getRange(idx, 1, 1, cols.length), cur = range.getValues()[0], o = {};
+  cols.forEach(function (c, i) { o[c] = cur[i]; });
+  Object.keys(patch).forEach(function (k) { if (cols.indexOf(k) >= 0 && patch[k] !== undefined) { if (typeof patch[k] === 'string' && patch[k].length > MAX_CELL_CHARS) throw httpErr_('A value is too large to store (' + k + '). Use a smaller image.', 400); o[k] = patch[k]; } });
+  range.setValues([toArr_(t, o)]);
+  var out = {}; cols.forEach(function (c) { out[c] = NUMERIC[c] && o[c] !== '' ? Number(o[c]) : o[c]; });
+  return out;
+}
+function delete_(t, id) { var idx = rowIndex_(t, id); if (idx > 0) sheet_(t).deleteRow(idx); }
+function deleteWhere_(t, col, val) {
+  var sh = sheet_(t), last = sh.getLastRow(); if (last < 2) return;
+  var ci = T[t].indexOf(col), vals = sh.getRange(2, 1, last - 1, T[t].length).getValues();
+  for (var i = vals.length - 1; i >= 0; i--) if (vals[i][ci] === val) sh.deleteRow(i + 2);
+}
+function clean_(t, o) { var r = {}; T[t].forEach(function (c) { if (o[c] !== undefined) r[c] = o[c]; }); return r; }   // whitelist columns only
+
+// =====================================================================
+// Helpers: auth, misc
+// =====================================================================
+
+function session_(token) {
+  var id = token && CacheService.getScriptCache().get('tok:' + token);
+  if (!id) throw httpErr_('Session expired. Please sign in again.', 401);
+  var user = find_('users', id);
+  if (!user || user.status !== 'Active') throw httpErr_('Account is inactive.', 401);
+  var lecturer = rows_('lecturers').filter(function (l) { return l.user_id === user.id; })[0] || null;
+  return { user: user, lecturer: lecturer };
+}
+function needAdmin_(ctx) { if (ctx.user.role !== 'admin') throw httpErr_('Admin only.', 403); }
+function assertOwnsDoc_(docId, lid) { var d = find_('documents', docId); if (!d || d.lecturer_id !== lid) throw httpErr_('Invalid supporting document.', 400); }
+function safeUser_(u) { var o = {}; Object.keys(u).forEach(function (k) { if (k !== 'password_hash' && k !== 'salt') o[k] = u[k]; }); return o; }
+function hash_(salt, pw) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + ':' + pw, Utilities.Charset.UTF_8)
+    .map(function (b) { return ((b < 0 ? b + 256 : b) + 256).toString(16).slice(1); }).join('');
+}
+function uid_(p) { return p + '_' + Utilities.getUuid().replace(/-/g, '').slice(0, 10); }
+function now_() { return new Date().toISOString(); }
+function log_(lid, msg) {
+  insert_('activity_log', { id: uid_('act'), lecturer_id: lid, message: msg, created_at: now_() });
+  var sh = sheet_('activity_log'); if (sh.getLastRow() > 801) sh.deleteRows(2, sh.getLastRow() - 801);   // keep the feed bounded
+}
+function folder_() {
+  var props = PropertiesService.getScriptProperties(), id = props.getProperty('DRIVE_FOLDER_ID');
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) { /* recreate below */ } }
+  var f = DriveApp.createFolder(DRIVE_FOLDER_NAME); props.setProperty('DRIVE_FOLDER_ID', f.getId()); return f;
+}
+function trashFile_(ref) { if (ref) { try { DriveApp.getFileById(ref).setTrashed(true); } catch (e) { /* already gone */ } } }
+function httpErr_(msg, code) { var e = new Error(msg); e.publicMessage = msg; e.code = code; return e; }
+function json_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
