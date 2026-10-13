@@ -409,4 +409,4 @@ Give the AI this file plus the proposal PDF and the two mockups, then proceed in
 11. **Docs & deploy:** README, `backend/README.md`, `docs/schema.sql`, `.nojekyll`, GitHub Pages.
 12. **Deck:** capture screenshots with `tools/screenshots.mjs`, build the 28 slides (§14).
 
-When in doubt, read the code: it is small (roughly 3,500 lines of JS, CSS and Apps Script, with no dependency besides Three.js).
+When in doubt, read the code: it is small (roughly 2,600 lines of JS, CSS and Apps Script, with no dependency besides Three.js).
