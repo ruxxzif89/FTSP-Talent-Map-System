@@ -2,6 +2,8 @@
 
 > **Purpose of this file.** A complete, self-contained handoff. A person or an AI agent with *only this file* (and no memory of earlier work) should be able to rebuild, run, deploy, extend, test and present this project. Everything the previous build learned the hard way is in §20 (Gotchas) and §21 (Build order).
 >
+> **Read §0.1 first.** This file is a *replication spec*, not a deployment recipe tied to one vendor. Where the web app is hosted ("parked") and which backend/database it uses are **open decisions to be made with the human** — GitHub Pages, Firebase, Netlify, a university server, etc. are all valid. The original build used GitHub Pages + Google Apps Script/Sheets purely as a **reference deployment**.
+>
 > Last verified against the repository at commit range `5039787..` (see `git log`). When this file and the code disagree, **the code wins**; fix this file.
 
 ---
@@ -18,14 +20,73 @@
 | Supervisor | Prof. Madya Dr. Nor Azliana Akmal Binti Jamaludin |
 | **UI language** | **Bahasa Malaysia only** (hard requirement from the student). This file is in English so any AI can follow it. |
 | Stack | Plain HTML/CSS/JavaScript (ES modules, **no build step**), Three.js r160 (CDN), Google Apps Script + Google Sheets/Drive (phase 1 backend), planned PHP + MySQL (phase 2) |
-| Repo | https://github.com/ruxxzif89/FTSP-Talent-Map-System (public, branch `main`) |
-| Live site | https://ruxxzif89.github.io/FTSP-Talent-Map-System/ (GitHub Pages, deploy from `main` `/`) |
+| Reference repo (current, not mandatory) | https://github.com/ruxxzif89/FTSP-Talent-Map-System (public, branch `main`) |
+| Reference deployment (current, not mandatory) | https://ruxxzif89.github.io/FTSP-Talent-Map-System/ (GitHub Pages) — **a new build may be hosted anywhere; see §0.1 and §11** |
 | Sandbox demo | live site + `?backend=local` (private in-browser DB with 100 fictional lecturers) |
-| Google Sheet (DB) | spreadsheet id `1LFZkj30JrlinLjcabWfZ-yEcO08EVwcDt2MPR0prRF0` |
-| Apps Script web app | `https://script.google.com/macros/s/AKfycbyklWJ6Ttcj9gL11yeAIdT0mDv6VzdQgdhVZGR9UquD8Od2JS7gcZ1JOKDourKJcYZD/exec` (Execute as: Me · Access: Anyone) |
+| Reference DB (current phase-1 backend) — Google Sheet | spreadsheet id `1LFZkj30JrlinLjcabWfZ-yEcO08EVwcDt2MPR0prRF0` |
+| Reference API — Apps Script web app | `https://script.google.com/macros/s/AKfycbyklWJ6Ttcj9gL11yeAIdT0mDv6VzdQgdhVZGR9UquD8Od2JS7gcZ1JOKDourKJcYZD/exec` (Execute as: Me · Access: Anyone) |
 | Default admin | username `admin`, password `admin` (**first-phase default; change before real data**) |
 | Sample lecturers | username = first name lower-case (+ index from the 5th lecturer), password `Lecturer@123`; the showcase account is `aisyah` |
 | Presentation deck | 28-slide Malay FYP deck (claude.ai artifact "Pembentangan FYP - Peta Bakat FSTP"; also exported to `.pptx` locally, not committed) |
+
+---
+
+## 0.1 DECISION GATE — ask the human before you build or deploy
+
+**Instruction to any AI agent using this file:** do *not* assume GitHub, Google or any other vendor. Before creating accounts, running deploy commands or pushing code, **ask the user the questions below in one short, friendly message, wait for the answers, then proceed**. Offer help explicitly: *"Do you already know how to do this? If not, I can guide you step by step and check each step with you — just tell me."* If the user is unsure, explain the options in plain language and give a recommendation, but let them choose. Never push to a remote, create a cloud project, or make something public without their explicit go-ahead.
+
+### Questions to ask
+
+**Q1 — Where do you want to host ("park") the web app?** (frontend is static files, so almost anything works)
+
+| Option | Good for | Cost / effort | Notes |
+|---|---|---|---|
+| **GitHub Pages** | Quick public demo, already using GitHub | Free (free plan needs a *public* repo); easy | Needs `.nojekyll`; sub-path URL `/<repo>/` |
+| **Firebase Hosting** | Want Google ecosystem; may use Firebase backend later | Free "Spark" tier; CLI setup ~10 min | Global CDN, automatic HTTPS, URL `https://<project>.web.app` |
+| **Netlify** | Fastest drag-and-drop deploy | Free tier; very easy | Auto HTTPS; can connect to Git later |
+| **Cloudflare Pages** | Fast global CDN, free | Free; easy | Git integration or direct upload |
+| **Vercel** | Developers who like CLI/Git deploys | Free hobby tier | No framework preset needed |
+| **GitLab Pages / Azure Static Web Apps / AWS S3+CloudFront** | Organisation already standardised on it | Varies | Follow vendor docs; see §11 common rules |
+| **University / own server (Apache, Nginx, XAMPP)** | Final PSM II setup with PHP + MySQL; data must stay on campus | Needs IT approval or own PC | Required if you want the proposal's exact stack |
+| **Local only (for now)** | Examiner demo from your laptop | Free | `python -m http.server 5173` |
+
+**Q2 — Which backend/database for this phase?** (the frontend works with any backend that implements the §5 contract)
+
+| Option | Good for | Caveats |
+|---|---|---|
+| **Google Apps Script + Google Sheets/Drive** (reference build) | Zero server, free, shareable now | Slow on big data; public URL protected only by tokens; Google account needed |
+| **Firebase** (Auth + Firestore + Storage, rules/Cloud Functions) | Realtime, scalable, free tier | Must re-implement §5 authorisation in Security Rules/Functions; Functions need the paid Blaze plan; Firebase Auth uses e-mail as login (map `username` → e-mail) |
+| **Supabase** (Postgres + Auth + Storage + RLS) | Closest to the SQL target (`docs/schema.sql` ports almost 1:1) | Write Row-Level-Security policies for the ownership rules |
+| **PHP + MySQL (XAMPP / shared hosting)** — *the proposal's stack* | Final submission, SQL requirement | Needs a PHP host; write the endpoint per §12 |
+| **Node/Express + SQLite/Postgres** | If you prefer JavaScript end-to-end | You host and secure it |
+| **MongoDB (Atlas) or other document DB** | Prefer JSON-style documents, free Atlas tier | Needs a small API in front (Node/Python/PHP); enforce §5 rules there; see §12.1 for modelling |
+| **SQLite / PostgreSQL / SQL Server / Oracle / MariaDB** | Relational with a different engine (e.g. the university mandates one) | Port `docs/schema.sql`; API layer needed |
+| **PocketBase / Appwrite / Directus** (self-hosted BaaS) | Backend-in-a-box with auth + files | Configure collections/permissions to match §5 |
+| **Airtable / Notion / SharePoint Lists / Excel Online** | Staff already live in that tool | API limits, weak authorisation; prototype only |
+| **None (local sandbox only)** | UI demo / examiner preview | Data lives only in each browser |
+
+**Q2b — Do you have a database *style* requirement or preference?** (e.g. "my supervisor says it must be SQL", "we use MySQL at UPNM", "I only know Firebase", "NoSQL/JSON is fine"). If the user has no preference, recommend: *relational SQL* for the final system (the data is naturally relational: lecturers → many records, categories, foreign keys) and the reference Sheets/Firebase option only for a quick prototype. Whatever they choose, follow **§12.1 (database-style guide)** so the invariants survive the move.
+
+**Q3 — What do you already have?** GitHub / GitLab account? Google account? Firebase project? Node.js installed? A university server or hosting account? A custom domain?
+**Q4 — Is the data real or fake?** If *real* lecturer data: insist on HTTPS, change the default `admin/admin` password immediately, avoid "Anyone" web-app access unless understood, and mention the Malaysian PDPA/institution data policy so they check with their supervisor/IT.
+**Q5 — Who must be able to open it?** (just you, the supervisor/examiners, the whole faculty, the public internet) → decides authentication hardening and whether the site should be public.
+**Q6 — Comfort level:** "Have you done this before? Want me to guide you step by step?" If yes → guided mode below.
+
+### Guided mode (when the user says they don't know / want help)
+1. Explain in 2–3 plain sentences what you are about to do and why. 2. Give **one step at a time** (a single command or click path), say what success looks like, and ask them to paste the output or any error. 3. Never ask them to paste passwords/tokens/API keys; if a credential is needed, tell them where to type it themselves. 4. After each milestone run the verification list in §11.4. 5. Record the outcome in the decision record below.
+
+### Deployment decision record (fill this in and keep it in the repo)
+```
+Date:
+Hosting platform:            (e.g. Firebase Hosting)  URL:
+Backend / database:          (e.g. Apps Script + Sheets)  endpoint:
+Database style:              (relational SQL / document NoSQL / spreadsheet / BaaS)  engine:
+Source control remote:       (e.g. GitHub private repo / none)
+Data is real or fake:
+Audience:
+Admin password changed:      yes / no
+Notes / who owns the accounts:
+```
 
 ---
 
@@ -283,21 +344,121 @@ Known weak points (disclosed in the deck): SHA-256 not bcrypt; public Apps Scrip
 
 ---
 
-## 11. Deployment
+## 11. Deployment (choose per §0.1)
 
-- **Frontend:** GitHub Pages — repo Settings → Pages → Deploy from branch `main` `/ (root)`. **Needs `.nojekyll`** (Jekyll otherwise silently drops files starting with `_`, i.e. `js/views/_ui.js` → every view fails with "Failed to fetch dynamically imported module"). All paths are relative so the `/<repo>/` sub-path works. After a push allow ~1 min; hard-refresh (Ctrl+Shift+R).
-- **Backend:** Apps Script web app (see §5.1).
-- **Sharing a demo safely:** `…/?backend=local` (sandbox, nothing leaves the browser). The live default uses the shared Sheet: anyone who can sign in as admin can edit everything → change the admin password (Akaun) before real use.
+### 11.1 What the frontend needs from *any* host
+- It is a **static site, no build step**. Publish exactly: `index.html`, `css/`, `js/` (and `.nojekyll` only if using GitHub Pages). Everything else in the repo (`backend/`, `docs/`, `tools/`, `*.md`) is not needed at runtime.
+- **Never publish** the proposal PDF, mockup images, `.pptx`, or any file with personal data. When the host publishes a whole folder (Netlify drop, Firebase `public: "."`, S3 sync), publish from a **clean copy**:
+  ```bash
+  rm -rf dist && mkdir dist && cp -r index.html css js dist/      # add .nojekyll for GitHub Pages
+  ```
+  then point the host at `dist/`.
+- All asset paths are **relative**, so the site works at a domain root or under a sub-path (`/repo/`). Routing is hash-based (`#/dashboard`), so **no server rewrite rules** are needed.
+- Must be served over **HTTPS or `http://localhost`**: the in-browser sandbox backend uses `crypto.subtle` (SHA-256), which browsers disable on insecure origins. Three.js loads from jsDelivr (CDN) — the user's network must allow it, or vendor the files locally and edit the import map.
+- Configure the backend in `js/config.js` (`backend`, `gasUrl`) — or add a new backend branch in `js/api.js` `transport()` (see §12). `?backend=local` always gives the sandbox.
+- If the backend is on another origin it must allow CORS (Apps Script already does when called with `Content-Type: text/plain`; PHP/Node/Firebase Functions must send `Access-Control-Allow-Origin` and handle `OPTIONS`).
+
+### 11.2 Platform recipes (give only the one the user chose; guide step by step if they asked)
+**GitHub Pages** — create a repo (public if on the free plan), push the project, Settings → Pages → *Deploy from a branch* → `main` / `(root)`. Keep `.nojekyll` (otherwise Jekyll silently drops files starting with `_`, e.g. `js/views/_ui.js`, and every view fails with *"Failed to fetch dynamically imported module"*). URL: `https://<user>.github.io/<repo>/` (≈1 min after each push). Remember the free plan needs a public repo, so anything committed is public.
+
+**Firebase Hosting** —
+```bash
+npm install -g firebase-tools
+firebase login
+firebase init hosting     # choose/create a project; public directory: dist ; single-page app: No ; GitHub auto-deploy: optional
+# (build the clean dist/ folder first, see 11.1)
+firebase deploy --only hosting
+```
+URL `https://<project-id>.web.app`. Optional: `firebase hosting:channel:deploy preview` for a preview URL. If the user also wants Firebase as the backend, continue with §12 (Firestore/Auth/Storage mapping).
+
+**Netlify** — easiest: open app.netlify.com/drop and drag the clean `dist/` folder; or `npm i -g netlify-cli && netlify login && netlify deploy --prod --dir dist`. Rename the site in Site settings. Git-based deploys: build command *(none)*, publish directory `dist` (or `/` if the repo contains only the app).
+
+**Cloudflare Pages** — Dashboard → Workers & Pages → Create → Pages → *Upload assets* (drag `dist/`) or connect Git: framework preset *None*, build command empty, output directory `dist`.
+
+**Vercel** — `npm i -g vercel && vercel login && cd dist && vercel --prod` (framework: Other, no build command, output `.`).
+
+**GitLab Pages** — add `.gitlab-ci.yml`:
+```yaml
+pages:
+  script: [ "mkdir public", "cp -r index.html css js public/" ]
+  artifacts: { paths: [ public ] }
+  rules: [ { if: '$CI_COMMIT_BRANCH == "main"' } ]
+```
+
+**University / own server, Apache or XAMPP** — copy `index.html css js` into the web root (`C:\xampp\htdocs\talentmap\` or `/var/www/html/talentmap/`), open `http://localhost/talentmap/` (or the server's HTTPS URL). For phase 2 place the PHP API beside it (e.g. `/talentmap/api/`) and point `transport()` at it (same origin → no CORS). Ask IT about HTTPS, firewall and data-retention rules.
+
+**Local only** — `python -m http.server 5173` then http://localhost:5173 (or `?backend=local` for the sandbox).
+
+### 11.3 Backend deployment pointers
+- **Apps Script + Sheets:** §5.1 (paste `Code.gs`, run `setup`, deploy a **new version** each change, Execute as *Me*, Access *Anyone*).
+- **PHP + MySQL:** §12 (schema from `docs/schema.sql`).
+- **Firebase:** Auth (e-mail/password; map `username` → `username@<your-domain>` or ask users to log in with e-mail), Firestore collections named exactly like the 12 tables, Storage for files (`documents.file_ref` = storage path), and **enforce §5 rules in Security Rules or Cloud Functions** (admin-only collections, `lecturer_id == auth.uid`-mapped ownership, category-in-use check, upload type/size). Drop `salt`/`password_hash` (Firebase manages credentials); keep `role`/`status` in a profile doc or custom claims.
+- **Supabase:** run a translated `docs/schema.sql` (ENUMs → `text` + `check`, `DATETIME` → `timestamptz`), link `users.id` to `auth.users`, add Row-Level-Security policies for ownership, use Storage for files.
+- In every case the **frontend contract is §5**: same actions, same `{ok,data|error,code}` envelope (or write a thin adapter in `transport()` that translates).
+
+### 11.4 Verification checklist after any deploy
+1. The URL loads over HTTPS and the login page shows the animated network (no console errors).
+2. Login as admin works; the dashboard counts load; hard refresh (Ctrl+Shift+R) still works.
+3. Open `<url>/?backend=local` → sandbox works with 100 lecturers.
+4. Create + delete a test lecturer, add a record with a file upload, export a CSV.
+5. A lecturer account cannot open admin pages and cannot read another lecturer's data (try the API with a lecturer token).
+6. Mobile width (≈390 px) shows the drawer navigation.
+7. No private files are reachable (try `<url>/PROJECT.md`, `<url>/*.pdf`, `<url>/.git/config` → must be 404).
+
+### 11.5 Troubleshooting
+| Symptom | Likely cause / fix |
+|---|---|
+| "Failed to fetch dynamically imported module …/_ui.js" on the hosted site only | GitHub Pages + Jekyll ignoring `_` files → add `.nojekyll`; or wrong base path |
+| Blank page, console says modules blocked / CORS from `file://` | Opened `index.html` directly; use any web server |
+| `crypto.subtle` is undefined | Page served over plain `http://` on a non-localhost origin → use HTTPS |
+| "Failed to fetch" / CORS error calling the backend | Backend not deployed as latest version, wrong URL, or missing CORS headers; Apps Script needs a *new version* after each edit |
+| Login says invalid with the documented password | The admin row was created earlier with another password → reset (Apps Script: `resetAdminPassword()`) |
+| Three.js scene missing | CDN blocked (check network/CSP) or WebGL unavailable (the app shows a fallback message) |
+| Old UI after deploy | CDN/browser cache → hard refresh; most hosts need a minute |
 
 ---
 
-## 12. Migration plan to PHP + MySQL (phase 2 / PSM II)
+## 12. Migration plan to PHP + MySQL (phase 2 / PSM II — the proposal's stack; other databases: see §12.1)
 
 1. Create DB from `docs/schema.sql` (same names; ENUMs use the Malay values from §4.1; FKs: lecturers→users CASCADE, owned tables→lecturers CASCADE, expertise.category_id RESTRICT, document_id SET NULL).
 2. Export each Sheet tab to CSV and import to the same-named table (convert ISO strings to DATETIME/DATE; password hashes can be migrated as-is then upgraded).
 3. Implement a PHP endpoint exposing the **same actions and envelope** as §5 (XAMPP/Apache). Use PDO prepared statements, `password_verify`/`password_hash`, sessions or signed tokens, `$_FILES`-based uploads to a non-public folder (`documents.file_ref` = path).
 4. In `js/api.js` replace the GAS branch of `transport()` (or add a `'php'` backend in `config.js`). No view changes. Remove CORS workaround if same-origin.
 5. Optional: server-side pagination/search for large tables.
+
+---
+
+## 12.1 Database-style guide (use any database; keep the invariants)
+
+The **frontend only knows the logical contract in §5** (the 12 "tables" returned by `snapshot`, plus the actions). *How* they are stored is an implementation detail. Pick any style; implement the **invariants** below and the UI will not change.
+
+### 12.1.1 Invariants every backend must enforce (regardless of DB style)
+1. **Identity:** unique `users.username` and unique `users.email` (case-insensitive); `role ∈ {admin, lecturer}`; `status ∈ {Active, Inactive}`; inactive users cannot log in.
+2. **One-to-one:** each lecturer-role user has exactly one `lecturers` row (`user_id` unique); admins have none.
+3. **Ownership:** every row of the 9 owned tables carries `lecturer_id`; a lecturer may read/write only rows whose `lecturer_id` is their own; admins all. Enforced **server-side**.
+4. **Referential integrity:** `expertise.category_id` must exist and a category referenced by any expertise **cannot be deleted** (HTTP 409); deleting a lecturer/user **cascades** to all of that lecturer's rows and files; deleting a document **nulls** `document_id` in referencing records; a record's `document_id` must belong to the same lecturer.
+5. **Secrets:** never return password hashes/salts or storage paths/ids; files only via authorised `download`.
+6. **Validation:** required fields, numeric ranges (`years` 0–60, `year` 1990–2100, `duration_days` 0–365), enum values from §4.1, password ≥ 8 chars, file ≤ 5 MB with MIME/extension whitelist.
+7. **Audit text:** write an `activity_log` row on create/update/remove/upload ("Menambah … baharu", "Mengemas kini maklumat …", "Memadam …", "Memuat naik dokumen"); keep the log bounded.
+8. **Idempotent demo tooling:** `bulkImport` accepts only ids prefixed `demo_` and lecturer-role users; `clearDemo` removes exactly those.
+
+### 12.1.2 Mapping by database style
+| Style | How to model the 12 entities | Where to enforce §12.1.1 | Pitfalls |
+|---|---|---|---|
+| **Relational SQL** (MySQL, MariaDB, PostgreSQL, SQLite, SQL Server, Oracle) | One table per entity exactly as `docs/schema.sql`; FKs with `ON DELETE CASCADE` (owned tables), `RESTRICT` (category), `SET NULL` (document); `UNIQUE` on username/email/staff_id/user_id | Constraints in the DB + authorisation in the API layer (PHP/Node/Python) | ENUM syntax differs per engine (use `CHECK` or lookup tables); dates as native `DATE/DATETIME`; use prepared statements |
+| **Document / NoSQL** (Firestore, MongoDB, DynamoDB, CouchDB) | One collection per entity with the same field names (**recommended**: it keeps the contract and CSV migration trivial). Do *not* embed owned records inside the lecturer document unless you also keep the flat `snapshot` shape (embedding makes cross-lecturer search/stats and `expertise` by category queries harder). Denormalise `lecturer_name`/`category_name` only if you keep them in sync | No DB-level FKs → implement RESTRICT/CASCADE/uniqueness in the API/Functions (use transactions/batched writes; unique indexes for username/email) or Security Rules (Firestore) | Firestore has no joins (the existing client-side join over the `snapshot` arrays already handles this); counting/aggregation needs queries or precomputed counters; per-document size limits; ids must be unique across the collection |
+| **Key-value / wide column** | Only for sessions/caches; not recommended as the system of record | — | Awkward reporting |
+| **Spreadsheet** (Google Sheets, Excel Online, Airtable, SharePoint Lists) | One sheet/table per entity, header row = field names (reference build) | All rules in the script/API in front of it (the sheet itself has no constraints) | Auto type conversion (dates/numbers), size limits (50k chars/cell), whole-table reads; prototype only |
+| **BaaS** (Supabase, PocketBase, Appwrite, Directus, Firebase) | Collections/tables as above; use the platform's auth for credentials (drop `salt`/`password_hash`) and keep `role`/`status` in a profile record or claims | Platform rules: RLS policies (Supabase), API rules (PocketBase), permissions (Appwrite), Security Rules (Firebase) | Rules are easy to get wrong — test with a lecturer token against another lecturer's id (must be 403) |
+| **Graph DB** (Neo4j) | Possible (lecturers–expertise–category graph is natural) but unnecessary; if used, expose the same flat `snapshot` | API layer | Over-engineering for this scope |
+
+### 12.1.3 Adapter checklist (works for every style)
+1. Create the storage (tables/collections/sheets) with the 12 names and fields of §4.
+2. Implement the actions of §5 with the same request/response envelope and Malay error messages.
+3. Seed: default 12 categories + admin (`admin`, password changed after first login).
+4. Point `js/api.js` `transport()` at the new endpoint (or add `backend:'<name>'` in `config.js`).
+5. Run the §19 acceptance checklist and the §11.4 deploy checklist; confirm cascades, the 409 category rule and the lecturer-vs-lecturer 403.
+6. Update the **decision record in §0.1** and, if the engine is SQL, keep `docs/schema.sql` in sync; if not, add an equivalent schema file for the chosen engine under `docs/`.
 
 ---
 
@@ -317,6 +478,7 @@ Tooling notes: `tools/screenshots.mjs` drives headless **Microsoft Edge over the
 ## 15. Environment & workflow notes (Windows)
 
 - Dev machine: Windows 11, Git Bash + PowerShell, Node 24, Python (for `http.server`), Edge at `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`. No `gh` CLI; git identity set per-repo.
+- Source-control remote is **optional and user-chosen** (GitHub, GitLab, none…); never push anywhere without the user's say-so.
 - Commit trailer used: `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
 - Source documents (`*.pdf`, WhatsApp images, `*.pptx`) are git-ignored on purpose (personal data).
 
@@ -350,7 +512,7 @@ Tooling notes: `tools/screenshots.mjs` drives headless **Microsoft Edge over the
 | Load/remove sample data on live | Akaun → Muatkan 100 pensyarah contoh / Buang data contoh (admin) |
 | Reset live admin password | run `resetAdminPassword()` in Apps Script, deploy new version |
 | Wipe live DB | run `resetAllData()` (destructive) |
-| Publish site | `git push` to `main` (Pages rebuilds ~1 min) |
+| Publish site | depends on the host chosen in §0.1 (reference: `git push` to `main` → GitHub Pages rebuilds ~1 min; Firebase: `firebase deploy --only hosting`) |
 | Regenerate screenshots | §13 |
 | Check backend alive | open the `/exec` URL → JSON with `status:"running"` |
 
@@ -367,7 +529,7 @@ Tooling notes: `tools/screenshots.mjs` drives headless **Microsoft Edge over the
 - [ ] Sample data 100 lecturers load and clear without touching real rows.
 - [ ] Light/dark theme, responsive down to 360 px, keyboard-accessible dialogs/drawers.
 - [ ] No English user-visible strings; dates in `ms-MY`.
-- [ ] Works under GitHub Pages sub-path (relative URLs, `.nojekyll`).
+- [ ] Works at the root **and** under a sub-path of whichever host was chosen in §0.1 (relative URLs; `.nojekyll` only for GitHub Pages).
 - [ ] Swapping backend (`local` ⇄ `gas` ⇄ future PHP) requires no view changes.
 
 ---
@@ -396,6 +558,7 @@ Tooling notes: `tools/screenshots.mjs` drives headless **Microsoft Edge over the
 
 Give the AI this file plus the proposal PDF and the two mockups, then proceed in these checkpoints (each ends with a runnable, testable state):
 
+0. **Decision gate (§0.1):** ask the human about hosting, backend, accounts, data sensitivity and comfort level; offer guided mode. Do this *before* writing deploy/backend code.
 1. **Foundations:** `index.html` (import map, fonts, theme script, `lang="ms"`), `css/app.css` tokens + shell, `util.js` (`html` escaping, icons, toast, drawer, confirm, charts), `schema.js` (ENTITIES, enums, labels).
 2. **Local backend:** `local-server.js` + `seed.js` implementing the §5 contract (auth, snapshot, CRUD, upload/download via IndexedDB, users) and `api.js` with store, selectors and session cache. *Check:* console-level calls succeed; authorisation tests per §19.
 3. **Shell & router:** `main.js` (guards, nav, popovers, theme), login view.
@@ -404,9 +567,9 @@ Give the AI this file plus the proposal PDF and the two mockups, then proceed in
 6. **Talent mapping** (search algorithm §6.4) → **statistics → reports**.
 7. **Three.js:** login network, then galaxy (+ dashboard card with lazy loading).
 8. **Malay audit:** grep every user-visible string, server errors, activity messages, seed text, README; verify with a page-text sweep.
-9. **Apps Script backend:** `Code.gs` mirroring §5 (+ `setup`, `resetAdminPassword`, `terjemahDataKeBM`, `bulkImport`, `clearDemo`), deploy, flip `backend:'gas'`, retest TC1–TC5 against the live Sheet.
+9. **Backend (per the §0.1 answer):** implement the §5 contract on the chosen platform. For the reference choice that is `Code.gs` (+ `setup`, `resetAdminPassword`, `terjemahDataKeBM`, `bulkImport`, `clearDemo`): deploy, flip `backend:'gas'`, retest TC1–TC5 against the live data. For Firebase / Supabase / PHP see §11.3 and §12.
 10. **Performance pass:** parallel session restore, snapshot cache, lazy galaxy.
-11. **Docs & deploy:** README, `backend/README.md`, `docs/schema.sql`, `.nojekyll`, GitHub Pages.
+11. **Docs & deploy:** README, backend notes, `docs/schema.sql`; then **run the decision gate (§0.1)** and deploy with the matching recipe in §11, finishing with the §11.4 checklist and a filled-in decision record.
 12. **Deck:** capture screenshots with `tools/screenshots.mjs`, build the 28 slides (§14).
 
 When in doubt, read the code: it is small (roughly 2,600 lines of JS, CSS and Apps Script, with no dependency besides Three.js).

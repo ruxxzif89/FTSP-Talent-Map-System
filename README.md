@@ -4,6 +4,8 @@ Sistem Pemetaan Bakat Berasaskan Web untuk Pensyarah FSTP (Fakulti Sains dan Tek
 
 HTML/CSS/JS biasa (modul ES) dengan Three.js untuk paparan 3D. **Tiada langkah binaan (build).**
 
+**Replikasi / serah terima penuh:** lihat [`PROJECT.md`](PROJECT.md) (spesifikasi lengkap, pilihan pengehosan dan pangkalan data, panduan langkah demi langkah).
+
 **Bahasa:** seluruh antara muka, mesej ralat, log aktiviti, data contoh, format tarikh (`ms-MY`) dan dokumentasi ini dalam Bahasa Malaysia.
 
 ## Cara menjalankan
