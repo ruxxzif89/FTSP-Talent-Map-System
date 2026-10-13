@@ -119,12 +119,14 @@ const bellHtml = () => {
 };
 const userHtml = () => html`<div class="pop" role="menu"><h4>${store.me.full_name}</h4><a href="#/account" role="menuitem">${icon('key', 18)} Account &amp; password</a><button class="mi" data-do="theme" role="menuitem">${icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon', 18)} Switch theme</button><button class="mi" data-do="logout" role="menuitem">${icon('out', 18)} Sign out</button></div>`;
 
+let revalidating = null;
 async function route() {
   if (cleanup) { try { cleanup(); } catch { /* noop */ } cleanup = null; }
   const path = (location.hash.replace(/^#\/?/, '') || '').split('?')[0];
   if (!store.me) {
-    const user = await api.restore();
-    if (!user && path !== 'login') { location.hash = '#/login'; return; }
+    const r = await api.restore();
+    if (!r && path !== 'login') { location.hash = '#/login'; return; }
+    if (r) revalidating = r.revalidate;
   }
   if (!store.me) { return renderLogin(); }
   if (path === 'login' || path === '') { location.hash = '#/dashboard'; return; }
@@ -145,6 +147,10 @@ async function route() {
     const query = Object.fromEntries(new URLSearchParams(location.hash.split('?')[1] || ''));
     cleanup = (await v.render(view, { ...query, ...m.params, entity: arg })) || null;
     view.focus({ preventScroll: true }); window.scrollTo({ top: 0 });
+    if (revalidating) { // painted from cache: if the server has newer data, redraw once (unless the user is mid-edit)
+      const rv = revalidating; revalidating = null;
+      rv.then((changed) => { if (changed && !document.querySelector('.overlay') && location.hash.replace(/^#\/?/, '').split('?')[0] === path) route(); });
+    }
   } catch (e) {
     console.error(e);
     mount(view, html`<div class="empty card">${icon('alert', 36)}<h3>Something went wrong</h3><p>${e.message}</p></div>`);

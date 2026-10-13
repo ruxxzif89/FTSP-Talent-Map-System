@@ -32,7 +32,7 @@ export async function call(action, payload) {
 
 function clearSession() {
   token = ''; store.me = null; store.loaded = false;
-  sessionStorage.removeItem(TOKEN_KEY); localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY); localStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem('ftm:snap');
 }
 
 export async function login(username, password, remember) {
@@ -45,14 +45,35 @@ export async function login(username, password, remember) {
 }
 export async function logout() { try { if (token) await call('logout'); } catch { /* ignore */ } clearSession(); emit(); }
 
+// Session cache: lets a refresh paint instantly from the last snapshot while fresh data loads in the background.
+const SNAP_KEY = 'ftm:snap';
+const DATA_KEYS = ['users', 'lecturers', 'expertise_categories', 'expertise', 'research', 'publications', 'certifications', 'training', 'consultancy', 'achievements', 'documents', 'activity_log'];
+const dataOnly = () => Object.fromEntries(DATA_KEYS.map((k) => [k, store[k] || []]));
+export function saveSnap() { try { if (store.me && store.loaded) sessionStorage.setItem(SNAP_KEY, JSON.stringify({ me: store.me, snap: dataOnly() })); } catch { /* quota / private mode: just skip caching */ } }
+const readSnap = () => { try { return JSON.parse(sessionStorage.getItem(SNAP_KEY)); } catch { return null; } };
+addEventListener('pagehide', saveSnap);
+
+// Resolves {user, revalidate}: `revalidate` is a promise<boolean> (true when fresh data differs from what was painted).
 export async function restore() {
   if (!token) return null;
-  try { const r = await call('me'); store.me = r.user; await load(); return r.user; } catch { clearSession(); return null; }
+  const cached = readSnap();
+  const fetchFresh = () => Promise.all([call('me'), call('snapshot')]); // parallel: one round trip instead of two
+  try {
+    if (cached && cached.me) {
+      Object.assign(store, cached.snap, { me: cached.me, loaded: true });
+      const revalidate = fetchFresh().then(([m, snap]) => { const changed = JSON.stringify(snap) !== JSON.stringify(cached.snap); store.me = m.user; Object.assign(store, snap, { loaded: true }); saveSnap(); return changed; }).catch(() => false);
+      return { user: cached.me, revalidate };
+    }
+    const [m, snap] = await fetchFresh();
+    store.me = m.user; Object.assign(store, snap, { loaded: true }); saveSnap(); emit();
+    return { user: m.user, revalidate: Promise.resolve(false) };
+  } catch { clearSession(); return null; }
 }
 
 export async function load() {
   const snap = await call('snapshot');
   Object.assign(store, snap, { loaded: true });
+  saveSnap();
   emit();
 }
 

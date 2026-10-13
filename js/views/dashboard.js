@@ -39,7 +39,7 @@ function admin(root) {
       ${tile('certifications', store.certifications.length, 'Certifications', '#/certifications')}
     </div>
     <section class="card" style="margin-top:18px"><h3>Expertise Galaxy <a class="small" href="#/talent">Open in Talent Mapping →</a></h3>
-      <div class="galaxy" id="gx" style="height:min(52vh,440px)"><div class="tip" id="tip"></div><div class="fallback" id="fb"><p>3D view needs WebGL, which isn’t available here.</p></div><div class="hud"><span>Each glowing hub is an expertise category; each dot is a lecturer</span><span>Drag to orbit · scroll to zoom · click a dot to open a profile</span></div></div></section>
+      <div class="galaxy" id="gx" style="height:min(52vh,440px)"><div class="tip" id="tip"></div><div class="gx-wait" aria-hidden="true">Loading 3D galaxy…</div><div class="fallback" id="fb"><p>3D view needs WebGL, which isn’t available here.</p></div><div class="hud"><span>Each glowing hub is an expertise category; each dot is a lecturer</span><span>Drag to orbit · scroll to zoom · click a dot to open a profile</span></div></div></section>
     <div class="grid g-2-1" style="margin-top:18px">
       <section class="card"><h3>Expertise Distribution <select class="input" id="dsel" style="max-width:210px;min-height:38px" aria-label="Department"><option value="">All Departments</option>${DEPARTMENTS.map((d) => html`<option>${d}</option>`)}</select></h3><div id="bars"></div><p class="small faint" style="margin-top:6px">Lecturers per expertise category.</p></section>
       <section class="card"><h3>Lecturers by Department</h3>${donut(dep, { center: store.lecturers.length, sub: 'Lecturers' })}</section>
@@ -51,13 +51,23 @@ function admin(root) {
   draw('');
   $('#dsel', root).onchange = (e) => draw(e.target.value);
 
-  let galaxy = null, gone = false;
-  import('../three/galaxy.js').then((m) => {
-    if (gone) return;
-    galaxy = m.createGalaxy($('#gx', root), { lecturers: store.lecturers, expertise: store.expertise, categories: store.expertise_categories, onOpen: (id) => (location.hash = '#/lecturer/' + id), tip: $('#tip', root) });
-    if (!galaxy) $('#fb', root).style.display = 'grid';
-  }).catch(() => { const fb = $('#fb', root); if (fb) fb.style.display = 'grid'; });
-  return () => { gone = true; if (galaxy) galaxy.dispose(); };
+  // Lazy: Three.js (~700 KB from the CDN) and the scene are only fetched/built once the card nears the viewport.
+  let galaxy = null, gone = false, started = false, io = null;
+  const start = () => {
+    if (started || gone) return; started = true;
+    const idle = window.requestIdleCallback || ((f) => setTimeout(f, 200));
+    idle(() => { if (!gone) load(); }, { timeout: 1500 }); // after first paint + data, never before
+  };
+  const load = () => {
+    import('../three/galaxy.js').then((m) => {
+      if (gone) return;
+      galaxy = m.createGalaxy($('#gx', root), { lecturers: store.lecturers, expertise: store.expertise, categories: store.expertise_categories, onOpen: (id) => (location.hash = '#/lecturer/' + id), tip: $('#tip', root) });
+      if (!galaxy) $('#fb', root).style.display = 'grid';
+    }).catch(() => { const fb = $('#fb', root); if (fb) fb.style.display = 'grid'; });
+  };
+  const box = $('#gx', root);
+  if ('IntersectionObserver' in window) { io = new IntersectionObserver((e) => { if (e.some((x) => x.isIntersecting)) { io.disconnect(); start(); } }, { rootMargin: '250px' }); io.observe(box); } else start();
+  return () => { gone = true; if (io) io.disconnect(); if (galaxy) galaxy.dispose(); };
 }
 
 function expiring() {

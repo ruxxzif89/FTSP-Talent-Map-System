@@ -279,3 +279,5 @@ td .icon-btn.del:hover{color:var(--danger);background:var(--danger-bg)}
 @media print{.topbar,.sidebar,.toolbar,.btn,.page-head .row,.no-print{display:none!important}.shell{display:block}main{padding:0}.card,.tbl-wrap{box-shadow:none}body{background:#fff}}
 .welcome{display:grid;grid-template-columns:1fr minmax(220px,320px);gap:20px;align-items:center}
 @media (max-width:700px){.welcome{grid-template-columns:1fr}}
+.gx-wait{position:absolute;inset:0;display:grid;place-items:center;color:#9fb6e6;font-size:13px;letter-spacing:.04em}
+.galaxy canvas+.tip+.gx-wait,.galaxy canvas~.gx-wait{display:none}
