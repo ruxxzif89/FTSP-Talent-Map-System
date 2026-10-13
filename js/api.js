@@ -75,6 +75,8 @@ export const resetPassword = (id, password) => call('resetPassword', { id, passw
 export const changePassword = (current, password) => call('changePassword', { current, password });
 export const deleteUser = async (id) => { await call('deleteUser', { id }); await load(); };
 export const resetDemo = () => call('resetDemo');
+export const bulkImport = async (tables) => { const r = await call('bulkImport', { tables }); await load(); return r; };
+export const clearDemo = async () => { const r = await call('clearDemo'); await load(); return r; };
 
 // Mirrors what the server logs, so we avoid a second round trip.
 function note(lecturer_id, message) { if (lecturer_id && store.lecturers.some((l) => l.id === lecturer_id)) store.activity_log.push({ id: 'local_' + Date.now(), lecturer_id, message, created_at: new Date().toISOString() }); }

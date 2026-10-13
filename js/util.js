@@ -62,7 +62,7 @@ export const logo = (size = 36) => raw(`<svg width="${size}" height="${size}" vi
 // ---- formatting ----
 export const fmtDate = (d) => { if (!d) return '—'; const x = new Date(d); return isNaN(x) ? esc(d) : x.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); };
 export const fmtSize = (n) => (n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB');
-export const initials = (name) => String(name).replace(/^(Prof\.? Madya|Prof\.?|Dr\.?|Mr\.?|Ms\.?|Puan|Encik)\s+/gi, '').replace(/^(Prof\.? Madya|Prof\.?|Dr\.?)\s+/gi, '').split(/\s+/).filter((w) => !/^(bin|binti|bt|b\.?)$/i.test(w)).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+export const initials = (name) => String(name).replace(/^(Prof\.? Madya|Prof\.?|Dr\.?|Mr\.?|Ms\.?|Puan|Encik)\s+/gi, '').replace(/^(Prof\.? Madya|Prof\.?|Dr\.?)\s+/gi, '').split(/\s+/).filter((w) => !/^(bin|binti|bt|b\.?|a\/l|a\/p)$/i.test(w)).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 const hue = (s) => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
 export const avatar = (l, size = 40) => l && l.photo
   ? html`<img class="avatar" style="width:${size}px;height:${size}px" src="${l.photo}" alt="">`

@@ -19,6 +19,10 @@ const CATS = [
 const MALE = ['Ahmad', 'Harun', 'Zulkifli', 'Faizal', 'Hafiz', 'Rashid', 'Imran', 'Syafiq', 'Nazri', 'Kamal', 'Azman', 'Shahrul', 'Khairul', 'Razak'];
 const FEMALE = ['Aisyah', 'Farhana', 'Nurul', 'Siti', 'Zarina', 'Hidayah', 'Aminah', 'Najwa', 'Rohana', 'Liyana', 'Sofea', 'Marlina', 'Fatimah', 'Haslinda'];
 const FATHER = ['Ismail', 'Omar', 'Zulkifli', 'Hassan', 'Yusof', 'Abdullah', 'Jamal', 'Rahman', 'Salleh', 'Mansor', 'Ibrahim', 'Karim', 'Aziz', 'Latif'];
+const CN_FIRST = ['Wei Ming', 'Jia Hui', 'Kah Seng', 'Mei Ling', 'Chee Keong', 'Siew Lan', 'Yong Jie', 'Pei Shan'];
+const CN_LAST = ['Tan', 'Lim', 'Lee', 'Wong', 'Chong', 'Ng', 'Teh'];
+const IN_FIRST = ['Kavitha', 'Suresh', 'Priya', 'Arun', 'Meena', 'Vikram', 'Deepa', 'Ganesh'];
+const IN_FATHER = ['Rajan', 'Krishnan', 'Subramaniam', 'Nair', 'Pillai', 'Maniam'];
 const VENUES = ['IEEE Access', 'Journal of Information Security', 'Computers & Security', 'Pertanika Journal of Science & Technology', 'International Journal of Advanced Computer Science', 'Defence S&T Technical Bulletin', 'ACM Computing Surveys', 'Malaysian Journal of Computer Science'];
 const ISSUERS = [['Certified Information Systems Security Professional (CISSP)', '(ISC)²'], ['Certified Ethical Hacker (CEH)', 'EC-Council'], ['CompTIA Security+', 'CompTIA'], ['AWS Certified Solutions Architect', 'Amazon Web Services'], ['Professional Scrum Master I', 'Scrum.org'], ['Cisco Certified Network Associate (CCNA)', 'Cisco'], ['TensorFlow Developer Certificate', 'Google'], ['Oracle Certified Professional, MySQL', 'Oracle'], ['GIAC Certified Forensic Analyst (GCFA)', 'GIAC']];
 const COURSES = [['Ethical Hacking and Penetration Testing', 'EC-Council'], ['Advanced Digital Forensics Workshop', 'CyberSecurity Malaysia'], ['Machine Learning for Practitioners', 'MIMOS'], ['Teaching & Learning in Higher Education', 'UPNM Centre for Academic Excellence'], ['Research Methodology Bootcamp', 'Ministry of Higher Education'], ['Cloud Security Fundamentals', 'AWS Academy'], ['Network Defence Simulation', 'Malaysian Armed Forces Cyber Division'], ['Data Visualization with Python', 'Universiti Malaya']];
@@ -27,21 +31,25 @@ const AWARDS = [['Best Researcher Award', 'Research'], ['Excellent Service Award
 const TOPICS = ['Smart Cities', 'IoT Environments', 'Defence Networks', 'Cloud Platforms', 'Critical Infrastructure', 'Mobile Devices', 'Government Systems', 'Autonomous Systems', 'Healthcare Data', 'Supply Chains'];
 const PT = ['A Review of {a} in {t}', 'Towards a Framework for {a} in {t}', 'Detecting Anomalies with {a} in {t}', '{a}: A Comparative Study for {t}', 'Machine Learning Approaches to {a} for {t}', 'A Secure Model for {a} in {t}'];
 
-export async function buildSeed(hashPw) {
+// opts: count (lecturers), prefix (id prefix, 'demo_' for remote import), categories (reuse existing rows), includeAdmin, docs
+export async function buildSeed(hashPw, opts = {}) {
+  const { count = 26, prefix = '', categories = null, includeAdmin = true, docs = true } = opts;
   const r = rng(20261013);
   const pick = (a) => a[Math.floor(r() * a.length)];
   const int = (a, b) => a + Math.floor(r() * (b - a + 1));
   const iso = (daysAgo) => new Date(Date.now() - daysAgo * 864e5).toISOString();
   const dateStr = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
   const out = { users: [], lecturers: [], expertise_categories: [], expertise: [], research: [], publications: [], certifications: [], training: [], consultancy: [], achievements: [], documents: [], activity_log: [] };
-  let n = 0; const id = (p) => `${p}_${String(++n).padStart(4, '0')}`;
+  let n = 0; const id = (p) => `${prefix}${p}_${String(++n).padStart(4, '0')}`;
 
-  const cats = CATS.map(([name, color, areas]) => { const c = { id: id('cat'), name, color, description: `${name} — ${areas.slice(0, 3).join(', ')} and related topics.`, created_at: iso(300), updated_at: iso(300) }; out.expertise_categories.push(c); return { ...c, areas }; });
-  const cat = (name) => cats.find((c) => c.name === name);
+  const cats = categories
+    ? categories.map((c) => ({ ...c, areas: (CATS.find((x) => x[0] === c.name) || [0, 0, ['General Practice']])[2] }))
+    : CATS.map(([name, color, areas]) => { const c = { id: id('cat'), name, color, description: `${name} — ${areas.slice(0, 3).join(', ')} and related topics.`, created_at: iso(300), updated_at: iso(300) }; out.expertise_categories.push(c); return { ...c, areas }; });
+  const cat = (name) => cats.find((c) => c.name === name) || cats[0];
 
   // admin
   const adminSalt = 's_admin';
-  out.users.push({ id: 'usr_admin', username: 'admin', email: 'admin@fstp.upnm.edu.my', full_name: 'Faculty Administrator', role: 'admin', department: 'Faculty Office', status: 'Active', salt: adminSalt, password_hash: await hashPw(adminSalt, 'admin'), last_login: '', created_at: iso(300), updated_at: iso(300) });
+  if (includeAdmin) out.users.push({ id: 'usr_admin', username: 'admin', email: 'admin@fstp.upnm.edu.my', full_name: 'Faculty Administrator', role: 'admin', department: 'Faculty Office', status: 'Active', salt: adminSalt, password_hash: await hashPw(adminSalt, 'admin'), last_login: '', created_at: iso(300), updated_at: iso(300) });
 
   const specs = [
     { name: 'Dr. Aisyah Binti Ahmad', user: 'aisyah', dept: 'Computer Science', pos: 'Senior Lecturer', female: true, main: ['Cybersecurity', 'Expert', 8], extra: [['Digital Forensics', 'Advanced', 6], ['Networking', 'Intermediate', 4], ['Artificial Intelligence', 'Intermediate', 3], ['Database', 'Beginner', 2]], counts: { research: 8, pubs: 15, certs: 6, train: 10, cons: 4, ach: 5 } },
@@ -51,13 +59,21 @@ export async function buildSeed(hashPw) {
   ];
   const used = new Set(specs.map((s) => s.name));
   const depts = ['Computer Science', 'Computer Science', 'Information Technology', 'Information Technology', 'Mathematics', 'Engineering', 'Others'];
-  while (specs.length < 26) {
-    const female = r() < 0.5;
-    const first = pick(female ? FEMALE : MALE);
-    const name = `${pick(['Dr.', 'Dr.', 'Dr.', 'Prof. Madya Dr.', 'Mr.', 'Ms.'].filter((t) => (female ? t !== 'Mr.' : t !== 'Ms.')))} ${first} ${female ? 'Binti' : 'Bin'} ${pick(FATHER)}`;
-    if (used.has(name)) continue; used.add(name);
-    const c1 = pick(cats), c2 = pick(cats);
-    specs.push({ name, user: (first + specs.length).toLowerCase(), dept: pick(depts), pos: pick(['Lecturer', 'Senior Lecturer', 'Senior Lecturer', 'Associate Professor', 'Tutor']), female, main: [c1.name, pick(['Intermediate', 'Advanced', 'Advanced', 'Expert', 'Beginner']), int(1, 14)], extra: c2 !== c1 && r() < 0.8 ? [[c2.name, pick(['Beginner', 'Intermediate', 'Advanced']), int(1, 9)]] : [] });
+  const POS_W = ['Lecturer', 'Lecturer', 'Senior Lecturer', 'Senior Lecturer', 'Senior Lecturer', 'Associate Professor', 'Professor', 'Tutor'];
+  while (specs.length < count) {
+    const eth = r(); let first, name, female = r() < 0.5, handle;
+    if (eth < 0.72) { first = pick(female ? FEMALE : MALE); name = `${first} ${female ? 'Binti' : 'Bin'} ${pick(FATHER)}`; handle = first; }
+    else if (eth < 0.86) { first = pick(CN_FIRST); name = `${pick(CN_LAST)} ${first}`; handle = first.split(' ')[0]; }
+    else { first = pick(IN_FIRST); const f = ['Priya', 'Meena', 'Deepa', 'Kavitha'].includes(first); female = f; name = `${first} ${f ? 'a/p' : 'a/l'} ${pick(IN_FATHER)}`; handle = first; }
+    const pos = pick(POS_W);
+    const title = pos === 'Professor' ? 'Prof. Dr.' : pos === 'Associate Professor' ? 'Prof. Madya Dr.' : pos === 'Tutor' ? (female ? 'Ms.' : 'Mr.') : r() < 0.8 ? 'Dr.' : (female ? 'Ms.' : 'Mr.');
+    const full = `${title} ${name}`;
+    if (used.has(full)) continue; used.add(full);
+    const c1 = pick(cats), c2 = pick(cats), c3 = pick(cats);
+    const senior = pos === 'Professor' ? 8 : pos === 'Associate Professor' ? 5 : pos === 'Tutor' ? 0 : 2;
+    const lvl = () => pick(['Beginner', 'Intermediate', 'Intermediate', 'Advanced', 'Advanced', 'Expert']);
+    specs.push({ name: full, user: (handle.toLowerCase().replace(/[^a-z]/g, '') + specs.length), dept: pick(depts), pos, female, main: [c1.name, pos === 'Tutor' ? 'Beginner' : lvl(), int(1 + senior, 8 + senior * 1.6)],
+      extra: [c2, c3].filter((c, i) => c.name !== c1.name && r() < (i ? 0.35 : 0.8)).map((c) => [c.name, lvl(), int(1, 9 + senior)]), counts: count > 40 ? { research: int(0, 4 + (senior > 4 ? 3 : 0)), pubs: int(0, 6 + senior), certs: int(0, 4), train: int(0, 4), cons: int(0, 2 + (senior > 4 ? 2 : 0)), ach: int(0, 3) } : undefined });
   }
 
   const lecSalt = 's_lec';
@@ -66,8 +82,8 @@ export async function buildSeed(hashPw) {
     const s = specs[i];
     const uidv = id('usr'), lid = id('lec');
     const email = `${s.user}@upnm.edu.my`;
-    out.users.push({ id: uidv, username: s.user, email, full_name: s.name, role: 'lecturer', department: s.dept, status: i === 25 ? 'Inactive' : 'Active', salt: lecSalt, password_hash: lecHash, last_login: '', created_at: iso(250), updated_at: iso(250) });
-    out.lecturers.push({ id: lid, user_id: uidv, staff_id: 'UPNM' + String(i + 1).padStart(3, '0'), full_name: s.name, email, department: s.dept, position: s.pos, phone: `+60 12-${int(300, 899)} ${int(1000, 9999)}`, location: 'Kuala Lumpur, Malaysia', bio: i === 0 ? 'Cybersecurity researcher focused on threat detection for IoT environments, digital forensics and incident response.' : '', photo: '', created_at: iso(250), updated_at: iso(int(1, 120)) });
+    out.users.push({ id: uidv, username: s.user, email, full_name: s.name, role: 'lecturer', department: s.dept, status: count > 40 ? (i % 31 === 30 ? 'Inactive' : 'Active') : (i === 25 ? 'Inactive' : 'Active'), salt: lecSalt, password_hash: lecHash, last_login: '', created_at: iso(250), updated_at: iso(250) });
+    out.lecturers.push({ id: lid, user_id: uidv, staff_id: 'UPNM' + String(i + 1).padStart(3, '0'), full_name: s.name, email, department: s.dept, position: s.pos, phone: `+60 12-${int(300, 899)} ${int(1000, 9999)}`, location: 'Kuala Lumpur, Malaysia', bio: i === 0 ? 'Cybersecurity researcher focused on threat detection for IoT environments, digital forensics and incident response.' : count > 40 ? `${s.pos} in ${s.dept}. Works on ${pick(cat(s.main[0]).areas).toLowerCase()} and ${s.main[0].toLowerCase()} with a focus on defence and national-security applications.` : '', photo: '', created_at: iso(250), updated_at: iso(int(1, 120)) });
     const c = s.counts || {};
     const areas = [s.main, ...s.extra];
     areas.forEach(([cn, level, years]) => {
@@ -101,13 +117,13 @@ export async function buildSeed(hashPw) {
       const [nm, cg] = pick(AWARDS);
       out.achievements.push({ id: id('ach'), lecturer_id: lid, name: nm, category: cg, year: int(2019, 2026), description: '', document_id: '', created_at: iso(int(10, 200)), updated_at: iso(int(1, 9)) });
     });
-    if (i === 0) {
+    if (i === 0 && docs) {
       [['CV', 'Latest CV 2024', 'CV_DrAisyah.pdf'], ['Portfolio', 'Teaching Portfolio', 'Teaching_Portfolio.pdf'], ['Report', 'Consultancy Report', 'Consultancy_Report.pdf']].forEach(([t, ti, f], k) => out.documents.push({ id: id('doc'), lecturer_id: lid, doc_type: t, title: ti, file_name: f, mime: 'application/pdf', size: 120000 + k * 40000, created_at: iso(60 + k * 30), updated_at: iso(60) }));
     }
   }
   // activity feed, newest first for Aisyah
   const aid = out.lecturers[0].id;
   [['Added new certification', 57], ['Updated research information', 59], ['Added new publication', 64], ['Updated profile photo', 66]].forEach(([m, d]) => out.activity_log.push({ id: id('act'), lecturer_id: aid, message: m, created_at: iso(d - 50 > 0 ? d - 50 : 1) }));
-  out.lecturers.slice(1, 10).forEach((l, k) => out.activity_log.push({ id: id('act'), lecturer_id: l.id, message: pick(['Added new publication', 'Updated expertise information', 'Added new certification']), created_at: iso(k + 1) }));
+  out.lecturers.slice(1, count > 40 ? 40 : 10).forEach((l, k) => out.activity_log.push({ id: id('act'), lecturer_id: l.id, message: pick(['Added new publication', 'Updated expertise information', 'Added new certification']), created_at: iso(k * 0.4 + 0.2) }));
   return out;
 }

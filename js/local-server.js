@@ -235,6 +235,21 @@ const actions = {
     write('users', read('users').filter((u) => u.id !== id));
     return { id };
   },
+  async bulkImport({ tables }, ctx) {
+    needAdmin(ctx); const out = {};
+    for (const [t, rows] of Object.entries(tables)) {
+      if (!TABLES.includes(t)) throw new HttpError('Unknown table: ' + t);
+      rows.forEach((r) => { if (!String(r.id).startsWith('demo_')) throw new HttpError('Bulk import only accepts demo_ ids.'); if (t === 'users' && r.role !== 'lecturer') throw new HttpError('Bulk import cannot create admins.'); });
+      const have = new Set(read(t).map((r) => r.id)); const fresh = rows.filter((r) => !have.has(r.id));
+      write(t, [...read(t), ...fresh]); out[t] = fresh.length;
+    }
+    return out;
+  },
+  async clearDemo(_p, ctx) {
+    needAdmin(ctx); const out = {};
+    for (const t of TABLES) { const rows = read(t); const keep = rows.filter((r) => !String(r.id).startsWith('demo_') && !String(r.lecturer_id || '').startsWith('demo_')); out[t] = rows.length - keep.length; write(t, keep); }
+    return out;
+  },
   async resetDemo() {
     localStorage.removeItem('ftm:seeded'); localStorage.removeItem('ftm:sessions');
     await ensureSeed();

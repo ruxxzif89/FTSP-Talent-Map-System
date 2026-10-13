@@ -32,3 +32,9 @@ The web app URL is public, but every action except `login` needs a server-issued
 3. Write a PHP API exposing the actions in `Code.gs` (`login`, `snapshot`, `create`, `update`, `remove`, `upload`, `download`, `createUser`, …) with the same JSON envelope `{ok, data | error, code}`.
 4. In `js/api.js` point `transport()` at the new endpoint. **No view code changes.**
 5. Move uploads from Drive to disk/S3 (`documents.file_ref`) and re-hash passwords to bcrypt on first login.
+
+## Sample data (100 fictional lecturers)
+
+Sign in as admin → **Account → Sample data → Load 100 sample lecturers**. It uses the `bulkImport` action (needs the latest `Code.gs` deployed as a new version). Every sample row id starts with `demo_`, so **Remove sample data** (`clearDemo`) deletes exactly those rows and never touches real data. Sample lecturers sign in with their username + `Lecturer@123`.
+
+Tip: open the site with `?backend=local` to use a private in-browser sandbox instead of the shared Sheet.
