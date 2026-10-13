@@ -39,6 +39,8 @@
 
 **Q1 — Where do you want to host ("park") the web app?** (frontend is static files, so almost anything works)
 
+> Before asking, present the **free vs paid comparison and the FYP recommendation in §0.2** (default advice: free options only; Plan A = PHP + MySQL on XAMPP, Plan B = static host + sandbox/Apps Script for the online demo).
+
 | Option | Good for | Cost / effort | Notes |
 |---|---|---|---|
 | **GitHub Pages** | Quick public demo, already using GitHub | Free (free plan needs a *public* repo); easy | Needs `.nojekyll`; sub-path URL `/<repo>/` |
@@ -87,6 +89,86 @@ Audience:
 Admin password changed:      yes / no
 Notes / who owns the accounts:
 ```
+
+---
+
+## 0.2 Perbandingan pilihan: percuma lawan berbayar (dan cadangan untuk FYP)
+
+*(Bahagian ini dalam Bahasa Malaysia kerana ia dibaca oleh pelajar semasa merancang. AI yang membaca: gunakan ia untuk menjelaskan pilihan kepada pengguna di §0.1.)*
+
+> **Peringatan:** kuota dan harga di bawah ialah anggaran umum yang kerap berubah. **Semak halaman harga rasmi platform sebelum membuat keputusan.** Jangan sekali-kali memasukkan kad kredit atau mengaktifkan pelan berbayar tanpa pengguna faham kosnya.
+
+### Ringkasan cadangan (TL;DR)
+| | Cadangan | Kos | Sebab ringkas |
+|---|---|---|---|
+| **Pelan A (utama, untuk penilaian FYP)** | **PHP + MySQL pada XAMPP (localhost) + frontend yang sama**, didemonstrasi dari komputer riba, dengan pelayan universiti jika ada kelulusan | **RM 0** | Sama seperti skop dalam proposal (HTML/CSS/JS + PHP + MySQL + XAMPP); penilai menjangkakan pangkalan data SQL; data kekal di mesin sendiri |
+| **Pelan B (demo dalam talian / sandaran)** | **GitHub Pages (atau Netlify/Cloudflare Pages) + `?backend=local` atau Apps Script + Sheets** | **RM 0** | Pautan boleh dikongsi dengan penyelia; berfungsi walaupun XAMPP bermasalah semasa pembentangan |
+| **Pelan C (hanya jika perlu awan sebenar)** | Supabase (PostgreSQL) percuma atau Firebase, **tanpa kad kredit** | RM 0 (had kuota) | Pangkalan data di awan tanpa menyelenggara pelayan; tetapi menyimpang daripada MySQL dalam proposal |
+| **Tidak disyorkan untuk FYP** | Pelan berbayar (Firebase Blaze, VPS, Workspace, AWS/Azure) | Berubah-ubah | Tiada keperluan sebenar; risiko bil tidak dijangka; tidak menambah markah |
+
+**Kesimpulan:** semua yang diperlukan untuk FYP ini boleh dibuat **percuma**. Cadangan ialah **Pelan A untuk PSM II (sistem akhir) dan Pelan B sebagai demo/sandaran**. Jangan bayar apa-apa melainkan ada sebab khusus (contohnya nama domain `.my` untuk imej profesional).
+
+---
+
+### A. Hos web (frontend statik)
+| Pilihan | Kos | Kelebihan | Kelemahan |
+|---|---|---|---|
+| **GitHub Pages** | Percuma (repo **awam** pada pelan percuma) | Paling mudah jika sudah guna GitHub; HTTPS automatik; kemas kini dengan `git push` | Kod menjadi awam (jangan simpan data peribadi dalam repo); perlu `.nojekyll`; tiada backend; had saiz/lebar jalur lembut |
+| **Netlify** | Percuma (had jalur lebar/pembinaan bulanan) | Drag-and-drop paling pantas; HTTPS; pratonton setiap perubahan | Kuota percuma boleh berubah; nama laman rawak melainkan ditukar |
+| **Cloudflare Pages** | Percuma (jalur lebar murah hati) | CDN global pantas; kuota luas | Antara muka lebih teknikal sedikit |
+| **Vercel (Hobby)** | Percuma untuk **penggunaan bukan komersial** | CLI mudah, pantas | Syarat bukan komersial; kurang perlu untuk laman statik |
+| **Firebase Hosting** | Percuma pada pelan Spark (kuota terhad) | CDN + HTTPS; sesuai jika kemudian guna Firebase | Perlu akaun Google + CLI; ciri backend tertentu perlu pelan berbayar |
+| **GitLab Pages** | Percuma | Berguna jika organisasi guna GitLab | Perlu fail CI |
+| **Pelayan universiti / XAMPP** | Percuma (dengan kelulusan IT) / RM 0 di komputer sendiri | Data kekal di dalam kampus; sepadan dengan skop proposal; boleh jalankan PHP + MySQL | Perlu kelulusan, firewall, HTTPS; tidak boleh diakses dari luar jika di komputer riba |
+| **Hos PHP kongsi berbayar** | Bayaran bulanan/tahunan kecil | PHP + MySQL sedia ada; domain sendiri; sentiasa hidup | Berbayar; kualiti berbeza; perlu urus keselamatan sendiri |
+| **VPS / awan (DigitalOcean, AWS, Azure)** | Berbayar mengikut penggunaan (kerap ada kredit pelajar) | Kawalan penuh | Perlu pentadbiran sistem; risiko bil; berlebihan untuk FYP |
+| **Domain `.my` / `.com`** | Berbayar tahunan | URL profesional | Tidak perlu untuk penilaian |
+
+### B. Pangkalan data / backend
+| Pilihan | Kos | Kelebihan | Kelemahan |
+|---|---|---|---|
+| **PHP + MySQL (XAMPP / phpMyAdmin)** | **Percuma** | **Sepadan dengan proposal**; SQL relasional sebenar (kunci asing, indeks); skema siap (`docs/schema.sql`); data di mesin sendiri; boleh dibawa ke hos PHP kemudian | Perlu menulis API PHP (§12); demo hanya dari mesin anda melainkan dihos; keselamatan perlu dijaga sendiri |
+| **Apps Script + Google Sheets/Drive** (versi rujukan semasa) | **Percuma** (kuota akaun Google) | Tiada pelayan; boleh dikongsi segera; sudah berfungsi | Perlahan apabila data besar; bukan SQL; URL awam dilindungi token sahaja; had masa pelaksanaan dan saiz sel; kebergantungan pada akaun Google |
+| **Supabase (PostgreSQL)** | Percuma (had storan; projek boleh "tidur" jika tidak aktif) / berbayar untuk pelan Pro | SQL sebenar di awan; Auth + Storage terbina; skema mudah dialih | Bukan MySQL (menyimpang daripada proposal); perlu tulis polisi RLS; had kuota percuma |
+| **Firebase (Firestore + Auth + Storage)** | Percuma pada Spark (kuota harian); ciri seperti Cloud Functions dan sesetengah storan memerlukan pelan **Blaze** (kad kredit, bayar ikut guna) | Realtime, skala baik, pengesahan terbina | NoSQL (tiada kunci asing; peraturan integriti perlu ditulis sendiri); risiko bil jika Blaze; kos tidak dapat diramal |
+| **MongoDB Atlas** | Percuma (kluster kecil M0) / berbayar | Pangkalan dokumen fleksibel | Perlu API sendiri; menyimpang daripada SQL |
+| **PocketBase / Appwrite (hos sendiri)** | Percuma (perisian) + kos hos jika di awan | Backend siap dengan auth dan fail | Perlu hos dan urus sendiri |
+| **Airtable / SharePoint / Excel Online** | Percuma terhad / berbayar | Mudah bagi bukan pengaturcara | Had API, kawalan akses lemah; hanya prototaip |
+| **Pangkalan data terurus berbayar (RDS, Azure SQL, dll.)** | Berbayar | Sandaran, skala, SLA | Terlalu mahal dan kompleks untuk FYP |
+
+### C. Percuma lawan berbayar: ringkasan kelebihan dan kelemahan
+**Pilihan percuma**
+- *Kelebihan:* RM 0; sesuai pelajar; cukup untuk beratus pengguna dan ribuan baris; tiada risiko bil.
+- *Kelemahan:* kuota/had (jalur lebar, storan, masa pelaksanaan); sokongan terhad; polisi boleh berubah; sesetengah perkhidmatan "tidur" apabila tidak aktif; repo/laman awam pada sesetengah platform; tiada SLA.
+
+**Pilihan berbayar**
+- *Kelebihan:* kuota tinggi, sokongan, sandaran automatik, prestasi stabil, domain/e-mel profesional, kawalan dan skala.
+- *Kelemahan:* kos berulang; **risiko bil tidak dijangka** (terutama pelan "bayar ikut guna" yang meminta kad kredit); lebih kompleks untuk dikonfigurasi dan diselenggara; berlebihan untuk skop FYP; tidak menambah markah projek.
+
+### D. Mengapa Pelan A + B untuk FYP ini
+1. **Selaras dengan proposal yang diluluskan** (PHP + MySQL + XAMPP) — mengurangkan soalan "mengapa menyimpang?" daripada penilai. Prototaip Apps Script ialah langkah awal yang sudah diterangkan dalam dek (pendekatan dua fasa).
+2. **Kos sifar dan risiko bil sifar**; semua boleh diulang oleh penyelia/penilai tanpa akaun berbayar.
+3. **Data peribadi pensyarah** (jika data sebenar digunakan) lebih selamat di pelayan sendiri/universiti berbanding awan awam; rujuk dasar data universiti/PDPA dan penyelia sebelum memuat naik data sebenar.
+4. **Demo boleh dipercayai:** Pelan B (pautan awam + sandbox `?backend=local`) ialah sandaran jika internet/XAMPP bermasalah pada hari pembentangan.
+5. **Boleh berkembang:** skema relasional + lapisan `api.js` bermakna menukar pelan kemudian tidak mengubah antara muka (§12, §12.1).
+
+### E. Matriks keputusan ringkas (1 = lemah, 5 = baik)
+| Pilihan | Kos | Padan proposal | Mudah disediakan | Selamat/terkawal | Skala | Demo dalam talian | Jumlah |
+|---|---|---|---|---|---|---|---|
+| PHP + MySQL (XAMPP/universiti) | 5 | **5** | 3 | 4 | 3 | 2 | **22** |
+| GitHub Pages + Apps Script/Sheets | 5 | 2 | **5** | 3 | 2 | **5** | 22 |
+| Supabase (percuma) | 5 | 3 | 3 | 4 | 4 | 5 | 24 |
+| Firebase Spark | 4 | 1 | 4 | 3 | 4 | 5 | 21 |
+| Hos PHP kongsi berbayar | 3 | 5 | 3 | 3 | 3 | 5 | 22 |
+| VPS/awan berbayar | 2 | 4 | 1 | 4 | 5 | 5 | 21 |
+
+Bacaan: markah hampir sama kerana setiap pilihan kuat pada kriteria berbeza. **Untuk FYP, utamakan "padan proposal" dan "kos"**, kemudian gunakan Pelan B untuk demo dalam talian. Jika penyelia membenarkan pangkalan data awan dan anda mahu SQL sebenar tanpa memasang pelayan, Supabase ialah alternatif terbaik (Pelan C) — tetapi catat dan terangkan penyimpangan daripada MySQL dalam laporan.
+
+### F. Amaran kos dan keselamatan
+- Pelan "bayar ikut guna" (contohnya Firebase Blaze, AWS, Azure) memerlukan kad kredit; tetapkan **amaran/had bajet** dan jangan aktifkan melainkan perlu.
+- Kuota percuma boleh berubah; simpan salinan data (eksport CSV) secara berkala.
+- Repo awam = kod awam: jangan commit kata laluan, token, data sebenar, atau dokumen peribadi (proposal, imej, `.pptx`).
+- Tukar kata laluan lalai `admin` sebelum menggunakan data sebenar.
 
 ---
 
