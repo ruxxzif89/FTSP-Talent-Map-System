@@ -1,40 +1,44 @@
-# Apps Script backend (Google Sheets database)
+# Bahagian belakang Apps Script (pangkalan data Google Sheets)
 
-Your spreadsheet: `1LFZkj30JrlinLjcabWfZ-yEcO08EVwcDt2MPR0prRF0` (hard-coded as `SPREADSHEET_ID` in `Code.gs`).
+Hamparan anda: `1LFZkj30JrlinLjcabWfZ-yEcO08EVwcDt2MPR0prRF0` (dikodkan keras sebagai `SPREADSHEET_ID` dalam `Code.gs`).
 
-## One-time setup
+## Persediaan sekali sahaja
 
-1. Open the spreadsheet → **Extensions → Apps Script** (this must be the script behind your `/exec` URL).
-2. Replace the contents of `Code.gs` with [`Code.gs`](Code.gs) from this folder. Save.
-3. In the function dropdown pick **`setup`** → **Run**. Approve the permission prompts (Sheets, Drive, external-request not needed).
-   This creates all 12 tabs with headers (`users`, `lecturers`, `expertise_categories`, `expertise`, `research`, `publications`, `certifications`, `training`, `consultancy`, `achievements`, `documents`, `activity_log`), seeds 12 expertise categories and the first admin (`admin` / `admin`), and creates a Drive folder `FSTP_Talent_Map_Files` for uploads.
-4. **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.** Execute as **Me**, access **Anyone**. The URL stays the same.
-5. Check it: open the `/exec` URL in a browser — you should see `{"ok":true,"data":{"service":"FSTP Talent Map API",...}}`.
-6. In `js/config.js` set `backend: 'gas'` (the URL is already filled in) and sign in as `admin`.
+1. Buka hamparan → **Extensions → Apps Script** (mestilah skrip di sebalik URL `/exec` anda).
+2. Gantikan kandungan `Code.gs` dengan [`Code.gs`](Code.gs) dalam folder ini. Simpan.
+3. Dalam senarai fungsi pilih **`setup`** → **Run**. Luluskan kebenaran yang diminta (Sheets, Drive).
+   Ini mencipta kesemua 12 tab berserta pengepala (`users`, `lecturers`, `expertise_categories`, `expertise`, `research`, `publications`, `certifications`, `training`, `consultancy`, `achievements`, `documents`, `activity_log`), memasukkan 12 kategori kepakaran (Bahasa Malaysia) dan pentadbir pertama (`admin` / `admin`), serta mencipta folder Drive `FSTP_Talent_Map_Files` untuk muat naik.
+4. **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.** Execute as **Me**, access **Anyone**. URL kekal sama.
+5. Semak: buka URL `/exec` dalam pelayar — anda patut melihat `{"ok":true,"data":{"service":"FSTP Talent Map API",...}}`.
+6. Dalam `js/config.js` tetapkan `backend: 'gas'` (URL sudah diisi) dan log masuk sebagai `admin`.
 
-Re-deploy a **new version** every time you edit `Code.gs`, otherwise the URL keeps serving the old code.
+Deploy **versi baharu** setiap kali `Code.gs` disunting, jika tidak URL terus menyajikan kod lama.
 
-## Why "Anyone" access is still safe-ish
+## Pangkalan data yang dicipta sebelum versi Bahasa Malaysia
 
-The web app URL is public, but every action except `login` needs a server-issued session token, and every write is authorised server-side (lecturers can only touch their own rows; admin-only actions check the role). Do not put real sensitive data here until it moves to SQL + HTTPS hosting you control.
+Jalankan fungsi **`terjemahDataKeBM`** sekali (kemudian deploy versi baharu): ia menukar nama 12 kategori kepakaran asal (Inggeris) dan akaun pentadbir kepada Bahasa Malaysia. Jika anda sudah memuatkan data contoh versi lama (rekod berbahasa Inggeris), pilih **Akaun → Buang data contoh**, kemudian **Muatkan 100 pensyarah contoh** semula. Fungsi `resetAdminPassword` pula menetapkan kata laluan admin kepada `admin`.
 
-## Limits to know about (Sheets is a stop-gap)
+## Mengapa akses "Anyone" masih agak selamat
 
-- Each request reads whole tabs: fine for a faculty (hundreds of rows), slow beyond a few thousand.
-- A cell holds 50,000 characters → profile photos are resized to 200 px JPEG in the browser.
-- Apps Script caps a script run at 6 minutes, and sessions at 6 hours (CacheService).
-- `resetAllData()` wipes everything — run by hand only.
+URL aplikasi web ialah awam, tetapi setiap tindakan kecuali `login` memerlukan token sesi yang dikeluarkan pelayan, dan setiap penulisan disahkan di pelayan (pensyarah hanya boleh menyentuh baris sendiri; tindakan khusus pentadbir menyemak peranan). Jangan letakkan data yang benar-benar sensitif di sini sehingga ia berpindah ke SQL + pengehosan HTTPS yang anda kawal.
 
-## Migrating to SQL later
+## Had yang perlu diketahui (Sheets ialah penyelesaian sementara)
 
-1. Create the schema: `docs/schema.sql` (same table/column names as the tabs).
-2. Export every tab as CSV → import into the same-named MySQL table.
-3. Write a PHP API exposing the actions in `Code.gs` (`login`, `snapshot`, `create`, `update`, `remove`, `upload`, `download`, `createUser`, …) with the same JSON envelope `{ok, data | error, code}`.
-4. In `js/api.js` point `transport()` at the new endpoint. **No view code changes.**
-5. Move uploads from Drive to disk/S3 (`documents.file_ref`) and re-hash passwords to bcrypt on first login.
+- Setiap permintaan membaca keseluruhan tab: sesuai untuk sebuah fakulti (ratusan baris), perlahan melebihi beberapa ribu.
+- Satu sel memuatkan 50,000 aksara → gambar profil diubah saiz kepada JPEG 200 px dalam pelayar.
+- Apps Script menghadkan satu larian skrip kepada 6 minit, dan sesi kepada 6 jam (CacheService).
+- `resetAllData()` memadam SEMUA data — jalankan secara manual sahaja.
 
-## Sample data (100 fictional lecturers)
+## Berpindah ke SQL kemudian
 
-Sign in as admin → **Account → Sample data → Load 100 sample lecturers**. It uses the `bulkImport` action (needs the latest `Code.gs` deployed as a new version). Every sample row id starts with `demo_`, so **Remove sample data** (`clearDemo`) deletes exactly those rows and never touches real data. Sample lecturers sign in with their username + `Lecturer@123`.
+1. Cipta skema: `docs/schema.sql` (nama jadual/lajur sama dengan tab; nilai ENUM ialah nilai Bahasa Malaysia).
+2. Eksport setiap tab sebagai CSV → import ke jadual MySQL yang bernama sama.
+3. Tulis API PHP yang menyediakan tindakan dalam `Code.gs` (`login`, `snapshot`, `create`, `update`, `remove`, `upload`, `download`, `createUser`, …) dengan sampul JSON yang sama `{ok, data | error, code}`.
+4. Dalam `js/api.js` halakan `transport()` ke titik akhir baharu. **Tiada perubahan kod paparan.**
+5. Pindahkan muat naik daripada Drive ke cakera/S3 (`documents.file_ref`) dan cincang semula kata laluan kepada bcrypt pada log masuk pertama.
 
-Tip: open the site with `?backend=local` to use a private in-browser sandbox instead of the shared Sheet.
+## Data contoh (100 pensyarah fiksyen)
+
+Log masuk sebagai admin → **Akaun → Data contoh → Muatkan 100 pensyarah contoh**. Ia menggunakan tindakan `bulkImport` (memerlukan `Code.gs` terkini di-deploy sebagai versi baharu). Setiap id baris contoh bermula dengan `demo_`, jadi **Buang data contoh** (`clearDemo`) memadam baris tersebut sahaja dan tidak menyentuh data sebenar. Pensyarah contoh log masuk dengan nama pengguna mereka + `Lecturer@123`.
+
+Petua: buka laman dengan `?backend=local` untuk menggunakan kotak pasir peribadi dalam pelayar dan bukannya Sheet bersama.

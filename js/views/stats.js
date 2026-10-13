@@ -14,15 +14,15 @@ export async function render(root) {
   const noExp = store.lecturers.filter((l) => !store.expertise.some((e) => e.lecturer_id === l.id));
   const avgYears = store.expertise.length ? (store.expertise.reduce((a, e) => a + Number(e.years || 0), 0) / store.expertise.length).toFixed(1) : '0';
   const leaders = store.lecturers.map((l) => ({ l, n: store.publications.filter((p) => p.lecturer_id === l.id).length })).sort((a, b) => b.n - a.n).slice(0, 5);
-  mount(root, html`${pageHead('Statistics', 'Faculty-wide expertise and output figures for planning.')}
+  mount(root, html`${pageHead('Statistik', 'Angka kepakaran dan output seluruh fakulti untuk perancangan.')}
     <div class="grid g4">
-      <div class="stat tint-blue"><span class="si">${icon('users', 22)}</span><b>${store.lecturers.length}</b><span class="l">Lecturers</span></div>
-      <div class="stat tint-green"><span class="si">${icon('brain', 22)}</span><b>${store.expertise.length}</b><span class="l">Expertise records</span></div>
-      <div class="stat tint-amber"><span class="si">${icon('star', 22)}</span><b>${avgYears}</b><span class="l">Avg. years of experience</span></div>
-      <div class="stat tint-rose"><span class="si">${icon('alert', 22)}</span><b>${noExp.length}</b><span class="l">Lecturers with no expertise</span></div>
+      <div class="stat tint-blue"><span class="si">${icon('users', 22)}</span><b>${store.lecturers.length}</b><span class="l">Pensyarah</span></div>
+      <div class="stat tint-green"><span class="si">${icon('brain', 22)}</span><b>${store.expertise.length}</b><span class="l">Rekod kepakaran</span></div>
+      <div class="stat tint-amber"><span class="si">${icon('star', 22)}</span><b>${avgYears}</b><span class="l">Purata tahun pengalaman</span></div>
+      <div class="stat tint-rose"><span class="si">${icon('alert', 22)}</span><b>${noExp.length}</b><span class="l">Pensyarah tanpa kepakaran</span></div>
     </div>
-    <div class="grid g-2-1" style="margin-top:18px"><section class="card"><h3>Lecturers per expertise category</h3>${barChart(cats.slice(0, 10), { height: 230 })}</section><section class="card"><h3>Expertise level</h3>${donut(lv, { center: store.expertise.length, sub: 'Records' })}</section></div>
-    <div class="grid g3" style="margin-top:18px"><section class="card"><h3>Publications per year</h3>${barChart(pubYear, { color: '#8b5cf6' })}</section><section class="card"><h3>Publication types</h3>${donut(pubType, { center: store.publications.length, sub: 'Total' })}</section><section class="card"><h3>By department</h3>${donut(dept, { center: store.lecturers.length, sub: 'Lecturers' })}</section></div>
-    <div class="grid g2" style="margin-top:18px"><section class="card"><h3>Top publishing lecturers</h3><ul class="act-list">${leaders.map(({ l, n }) => html`<li><a href="#/lecturer/${l.id}">${l.full_name}</a><span class="d"><b>${n}</b> publications</span></li>`)}</ul></section>
-    <section class="card"><h3>Needs attention: no expertise recorded</h3>${noExp.length ? html`<ul class="act-list">${noExp.slice(0, 6).map((l) => html`<li><a href="#/lecturer/${l.id}">${l.full_name}</a><span class="d">${l.department}</span></li>`)}</ul>` : html`<p class="muted">Every lecturer has at least one expertise record.</p>`}</section></div>`);
+    <div class="grid g-2-1" style="margin-top:18px"><section class="card"><h3>Pensyarah mengikut kategori kepakaran</h3>${barChart(cats.slice(0, 10), { height: 230 })}</section><section class="card"><h3>Tahap kepakaran</h3>${donut(lv, { center: store.expertise.length, sub: 'Rekod' })}</section></div>
+    <div class="grid g3" style="margin-top:18px"><section class="card"><h3>Penerbitan setiap tahun</h3>${barChart(pubYear, { color: '#8b5cf6' })}</section><section class="card"><h3>Jenis penerbitan</h3>${donut(pubType, { center: store.publications.length, sub: 'Jumlah' })}</section><section class="card"><h3>Mengikut jabatan</h3>${donut(dept, { center: store.lecturers.length, sub: 'Pensyarah' })}</section></div>
+    <div class="grid g2" style="margin-top:18px"><section class="card"><h3>Pensyarah dengan penerbitan terbanyak</h3><ul class="act-list">${leaders.map(({ l, n }) => html`<li><a href="#/lecturer/${l.id}">${l.full_name}</a><span class="d"><b>${n}</b> penerbitan</span></li>`)}</ul></section>
+    <section class="card"><h3>Perlu perhatian: tiada kepakaran direkodkan</h3>${noExp.length ? html`<ul class="act-list">${noExp.slice(0, 6).map((l) => html`<li><a href="#/lecturer/${l.id}">${l.full_name}</a><span class="d">${l.department}</span></li>`)}</ul>` : html`<p class="muted">Setiap pensyarah mempunyai sekurang-kurangnya satu rekod kepakaran.</p>`}</section></div>`);
 }

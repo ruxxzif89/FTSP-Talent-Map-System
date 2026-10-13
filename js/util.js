@@ -60,17 +60,18 @@ export const icon = (name, size = 20, cls = '') => raw(`<svg class="ic ${cls}" w
 export const logo = (size = 36) => raw(`<svg width="${size}" height="${size}" viewBox="0 0 48 52" aria-hidden="true"><path d="M24 2 5 8v17c0 12 8 21 19 25 11-4 19-13 19-25V8z" fill="#0b2a5b" stroke="#f2b705" stroke-width="2.500"/><path d="M24 9 11 13v11c0 8 5 14 13 17 8-3 13-9 13-17V13z" fill="none" stroke="#f2b705" stroke-width="1.200" opacity=".7"/><text x="24" y="31" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-weight="800" font-size="12" fill="#f2b705">FSTP</text></svg>`);
 
 // ---- formatting ----
-export const fmtDate = (d) => { if (!d) return '—'; const x = new Date(d); return isNaN(x) ? esc(d) : x.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); };
+export const fmtDate = (d) => { if (!d) return '—'; const x = new Date(d); return isNaN(x) ? esc(d) : x.toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric' }); };
 export const fmtSize = (n) => (n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB');
-export const initials = (name) => String(name).replace(/^(Prof\.? Madya|Prof\.?|Dr\.?|Mr\.?|Ms\.?|Puan|Encik)\s+/gi, '').replace(/^(Prof\.? Madya|Prof\.?|Dr\.?)\s+/gi, '').split(/\s+/).filter((w) => !/^(bin|binti|bt|b\.?|a\/l|a\/p)$/i.test(w)).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+export const initials = (name) => String(name).replace(/^(Prof\.? Madya|Prof\.?|Dr\.?|Mr\.?|Ms\.?|Puan|Encik|Cik)\s+/gi, '').replace(/^(Prof\.? Madya|Prof\.?|Dr\.?)\s+/gi, '').split(/\s+/).filter((w) => !/^(bin|binti|bt|b\.?|a\/l|a\/p)$/i.test(w)).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 const hue = (s) => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
 export const avatar = (l, size = 40) => l && l.photo
   ? html`<img class="avatar" style="width:${size}px;height:${size}px" src="${l.photo}" alt="">`
   : html`<span class="avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size * 0.38)}px;background:linear-gradient(135deg,hsl(${hue(l ? l.full_name : '?')} 55% 42%),hsl(${(hue(l ? l.full_name : '?') + 40) % 360} 60% 32%))" aria-hidden="true">${l ? initials(l.full_name) : '?'}</span>`;
-export const levelClass = (l) => ({ Expert: 'lv-expert', Advanced: 'lv-adv', Intermediate: 'lv-int', Beginner: 'lv-beg' }[l] || '');
-export const levelPct = (l) => ({ Beginner: 25, Intermediate: 55, Advanced: 80, Expert: 100 }[l] || 0);
-export const levelRank = (l) => ({ Beginner: 1, Intermediate: 2, Advanced: 3, Expert: 4 }[l] || 0);
-export const statusClass = (s) => ({ Completed: 'ok', Published: 'ok', Active: 'ok', Ongoing: 'info', 'In Press': 'info', Planned: 'warn', 'Under Review': 'warn', Draft: 'mute', Inactive: 'mute' }[s] || 'mute');
+// Kunci Bahasa Malaysia ialah nilai kanonik; kunci Inggeris dikekalkan supaya rekod lama masih dipaparkan dengan betul.
+export const levelClass = (l) => ({ Pakar: 'lv-expert', Mahir: 'lv-adv', Pertengahan: 'lv-int', Asas: 'lv-beg', Expert: 'lv-expert', Advanced: 'lv-adv', Intermediate: 'lv-int', Beginner: 'lv-beg' }[l] || '');
+export const levelPct = (l) => ({ Asas: 25, Pertengahan: 55, Mahir: 80, Pakar: 100, Beginner: 25, Intermediate: 55, Advanced: 80, Expert: 100 }[l] || 0);
+export const levelRank = (l) => ({ Asas: 1, Pertengahan: 2, Mahir: 3, Pakar: 4, Beginner: 1, Intermediate: 2, Advanced: 3, Expert: 4 }[l] || 0);
+export const statusClass = (s) => ({ Selesai: 'ok', Diterbitkan: 'ok', Active: 'ok', 'Sedang Berjalan': 'info', 'Dalam Percetakan': 'info', Dirancang: 'warn', 'Dalam Semakan': 'warn', Draf: 'mute', Inactive: 'mute', Completed: 'ok', Published: 'ok', Ongoing: 'info', 'In Press': 'info', Planned: 'warn', 'Under Review': 'warn', Draft: 'mute' }[s] || 'mute');
 
 export const download = (filename, content, mime = 'text/csv;charset=utf-8') => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], { type: mime })); a.download = filename; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
 export const toCsv = (head, rows) => '﻿' + [head, ...rows].map((r) => r.map((c) => { let s = String(c ?? ''); if (/^[=+\-@]/.test(s)) s = "'" + s; return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(',')).join('\r\n');
@@ -97,7 +98,7 @@ function trap(el, onClose) {
 export function openDrawer({ title, body, wide = false, onMount }) {
   lastFocus = document.activeElement;
   const wrap = document.createElement('div'); wrap.className = 'overlay';
-  wrap.innerHTML = `<aside class="drawer ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header><h2></h2><button class="icon-btn" data-x aria-label="Close">${icon('x').s}</button></header><div class="drawer-body"></div></aside>`;
+  wrap.innerHTML = `<aside class="drawer ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header><h2></h2><button class="icon-btn" data-x aria-label="Tutup">${icon('x').s}</button></header><div class="drawer-body"></div></aside>`;
   $('h2', wrap).textContent = title; $('.drawer-body', wrap).innerHTML = body.s;
   document.body.append(wrap); document.body.classList.add('noscroll');
   const close = () => { wrap.classList.add('out'); document.body.classList.remove('noscroll'); setTimeout(() => { wrap.remove(); lastFocus && lastFocus.focus && lastFocus.focus(); }, 200); };
@@ -107,11 +108,11 @@ export function openDrawer({ title, body, wide = false, onMount }) {
   onMount && onMount($('.drawer-body', wrap), close);
   return close;
 }
-export function confirmDialog({ title, message, confirm = 'Delete', danger = true }) {
+export function confirmDialog({ title, message, confirm = 'Padam', danger = true }) {
   return new Promise((res) => {
     lastFocus = document.activeElement;
     const wrap = document.createElement('div'); wrap.className = 'overlay center';
-    wrap.innerHTML = `<div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t"><h2 id="dlg-t"></h2><p></p><div class="row end"><button class="btn ghost" data-no>Cancel</button><button class="btn ${danger ? 'danger' : 'primary'}" data-yes></button></div></div>`;
+    wrap.innerHTML = `<div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t"><h2 id="dlg-t"></h2><p></p><div class="row end"><button class="btn ghost" data-no>Batal</button><button class="btn ${danger ? 'danger' : 'primary'}" data-yes></button></div></div>`;
     $('h2', wrap).textContent = title; $('p', wrap).textContent = message; $('[data-yes]', wrap).textContent = confirm;
     document.body.append(wrap);
     const done = (v) => { wrap.classList.add('out'); setTimeout(() => { wrap.remove(); lastFocus && lastFocus.focus && lastFocus.focus(); }, 150); res(v); };
@@ -124,11 +125,11 @@ export function confirmDialog({ title, message, confirm = 'Delete', danger = tru
 export function barChart(data, { height = 190, color = '#3b82f6' } = {}) {
   const max = Math.max(1, ...data.map((d) => d.value)); const W = 560, H = height, pad = { l: 28, b: 38, t: 18 };
   const bw = (W - pad.l) / data.length; const ticks = 4;
-  return html`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bar chart">${[...Array(ticks + 1)].map((_, i) => { const v = Math.round((max / ticks) * i); const y = H - pad.b - ((H - pad.b - pad.t) * i) / ticks; return html`<line x1="${pad.l}" x2="${W}" y1="${y}" y2="${y}" class="grid"/><text x="${pad.l - 6}" y="${y + 4}" text-anchor="end" class="axis">${v}</text>`; })}${data.map((d, i) => { const h = ((H - pad.b - pad.t) * d.value) / max; const x = pad.l + i * bw + bw * 0.2; return html`<g class="bar"><rect x="${x}" y="${H - pad.b - h}" width="${bw * 0.6}" height="${h}" rx="4" fill="${d.color || color}"><title>${d.label}: ${d.value}</title></rect><text x="${x + bw * 0.3}" y="${H - pad.b - h - 5}" text-anchor="middle" class="val">${d.value}</text><text x="${x + bw * 0.3}" y="${H - pad.b + 14}" text-anchor="middle" class="axis">${trunc(d.label, Math.max(6, Math.floor(bw / 6.500)))}</text></g>`; })}</svg>`;
+  return html`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Carta bar">${[...Array(ticks + 1)].map((_, i) => { const v = Math.round((max / ticks) * i); const y = H - pad.b - ((H - pad.b - pad.t) * i) / ticks; return html`<line x1="${pad.l}" x2="${W}" y1="${y}" y2="${y}" class="grid"/><text x="${pad.l - 6}" y="${y + 4}" text-anchor="end" class="axis">${v}</text>`; })}${data.map((d, i) => { const h = ((H - pad.b - pad.t) * d.value) / max; const x = pad.l + i * bw + bw * 0.2; return html`<g class="bar"><rect x="${x}" y="${H - pad.b - h}" width="${bw * 0.6}" height="${h}" rx="4" fill="${d.color || color}"><title>${d.label}: ${d.value}</title></rect><text x="${x + bw * 0.3}" y="${H - pad.b - h - 5}" text-anchor="middle" class="val">${d.value}</text><text x="${x + bw * 0.3}" y="${H - pad.b + 14}" text-anchor="middle" class="axis">${trunc(d.label, Math.max(6, Math.floor(bw / 6.500)))}</text></g>`; })}</svg>`;
 }
 const trunc = (s, n) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 export const PALETTE = ['#1d5fd1', '#22a06b', '#f2b705', '#8b5cf6', '#ef6c4d', '#0ea5b7', '#d946a8', '#64748b'];
 export function donut(data, { center = '', sub = '' } = {}) {
   const total = data.reduce((a, d) => a + d.value, 0) || 1; let acc = 0; const R = 54, C = 2 * Math.PI * R;
-  return html`<div class="donut-wrap"><svg viewBox="0 0 140 140" class="donut" role="img" aria-label="Donut chart"><circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--line)" stroke-width="20"/>${data.map((d, i) => { const len = (d.value / total) * C; const el = html`<circle cx="70" cy="70" r="${R}" fill="none" stroke="${d.color || PALETTE[i % PALETTE.length]}" stroke-width="20" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-acc}" transform="rotate(-90 70 70)"><title>${d.label}: ${d.value}</title></circle>`; acc += len; return el; })}<text x="70" y="68" text-anchor="middle" class="donut-n">${center}</text><text x="70" y="84" text-anchor="middle" class="axis">${sub}</text></svg><ul class="legend">${data.map((d, i) => html`<li><i style="background:${d.color || PALETTE[i % PALETTE.length]}"></i>${d.label} <b>${Math.round((d.value / total) * 100)}%</b></li>`)}</ul></div>`;
+  return html`<div class="donut-wrap"><svg viewBox="0 0 140 140" class="donut" role="img" aria-label="Carta donat"><circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--line)" stroke-width="20"/>${data.map((d, i) => { const len = (d.value / total) * C; const el = html`<circle cx="70" cy="70" r="${R}" fill="none" stroke="${d.color || PALETTE[i % PALETTE.length]}" stroke-width="20" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-acc}" transform="rotate(-90 70 70)"><title>${d.label}: ${d.value}</title></circle>`; acc += len; return el; })}<text x="70" y="68" text-anchor="middle" class="donut-n">${center}</text><text x="70" y="84" text-anchor="middle" class="axis">${sub}</text></svg><ul class="legend">${data.map((d, i) => html`<li><i style="background:${d.color || PALETTE[i % PALETTE.length]}"></i>${d.label} <b>${Math.round((d.value / total) * 100)}%</b></li>`)}</ul></div>`;
 }

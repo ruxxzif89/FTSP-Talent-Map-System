@@ -11,11 +11,11 @@ const emit = () => listeners.forEach((f) => f());
 
 async function transport(action, payload) {
   if (CONFIG.backend === 'gas') {
-    if (!CONFIG.gasUrl) throw new Error('Apps Script URL is not configured (js/config.js).');
+    if (!CONFIG.gasUrl) throw new Error('URL Apps Script belum ditetapkan (js/config.js).');
     // text/plain avoids a CORS preflight, which Apps Script web apps cannot answer.
     const res = await fetch(CONFIG.gasUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, payload, token }) });
     const j = await res.json();
-    if (!j.ok) { const e = new Error(j.error || 'Request failed'); e.code = j.code; throw e; }
+    if (!j.ok) { const e = new Error(j.error || 'Permintaan gagal'); e.code = j.code; throw e; }
     return j.data;
   }
   const { handle } = await import('./local-server.js');
@@ -80,9 +80,9 @@ export async function load() {
 const SING = Object.fromEntries(Object.entries(ENTITIES).map(([k, e]) => [k, e.singular.toLowerCase()]));
 const patchStore = (table, row) => { const list = store[table]; const i = list.findIndex((r) => r.id === row.id); if (i >= 0) list[i] = row; else list.push(row); };
 
-export async function create(table, row) { const r = await call('create', { table, row }); patchStore(table, r); note(r.lecturer_id, 'Added new ' + SING[table]); emit(); return r; }
-export async function update(table, id, patch) { const r = await call('update', { table, id, patch }); patchStore(table, r); if (table === 'lecturers') { const u = store.users.find((x) => x.id === r.user_id); if (u) Object.assign(u, { full_name: r.full_name, email: r.email, department: r.department }); } note(r.lecturer_id || r.id, table === 'lecturers' ? 'Updated profile information' : 'Updated ' + SING[table] + ' information'); emit(); return r; }
-export async function remove(table, id) { const old = store[table].find((r) => r.id === id); await call('remove', { table, id }); store[table] = store[table].filter((r) => r.id !== id); if (table === 'documents') ['expertise', 'research', 'publications', 'certifications', 'training', 'consultancy', 'achievements'].forEach((t) => store[t].forEach((r) => { if (r.document_id === id) r.document_id = ''; })); if (old) note(old.lecturer_id, 'Removed ' + SING[table]); emit(); }
+export async function create(table, row) { const r = await call('create', { table, row }); patchStore(table, r); note(r.lecturer_id, 'Menambah ' + SING[table] + ' baharu'); emit(); return r; }
+export async function update(table, id, patch) { const r = await call('update', { table, id, patch }); patchStore(table, r); if (table === 'lecturers') { const u = store.users.find((x) => x.id === r.user_id); if (u) Object.assign(u, { full_name: r.full_name, email: r.email, department: r.department }); } note(r.lecturer_id || r.id, table === 'lecturers' ? 'Mengemas kini maklumat profil' : 'Mengemas kini maklumat ' + SING[table]); emit(); return r; }
+export async function remove(table, id) { const old = store[table].find((r) => r.id === id); await call('remove', { table, id }); store[table] = store[table].filter((r) => r.id !== id); if (table === 'documents') ['expertise', 'research', 'publications', 'certifications', 'training', 'consultancy', 'achievements'].forEach((t) => store[t].forEach((r) => { if (r.document_id === id) r.document_id = ''; })); if (old) note(old.lecturer_id, 'Memadam ' + SING[table]); emit(); }
 export async function upload(file, meta) {
   const dataUrl = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(file); });
   const row = await call('upload', { ...meta, file_name: file.name, mime: file.type, size: file.size, dataUrl });

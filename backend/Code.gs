@@ -29,13 +29,15 @@ var T = {
   activity_log:         ['id', 'lecturer_id', 'message', 'created_at']
 };
 var OWNED = ['expertise', 'research', 'publications', 'certifications', 'training', 'consultancy', 'achievements', 'documents', 'activity_log'];
-var SINGULAR = { expertise: 'expertise', research: 'research', publications: 'publication', certifications: 'certification', training: 'training', consultancy: 'consultancy', achievements: 'achievement', documents: 'document' };
+var SINGULAR = { expertise: 'kepakaran', research: 'penyelidikan', publications: 'penerbitan', certifications: 'pensijilan', training: 'latihan', consultancy: 'konsultansi', achievements: 'pencapaian', documents: 'dokumen' };
 var NUMERIC = { years: 1, year: 1, duration_days: 1, size: 1 };
 var DEFAULT_CATEGORIES = [
-  ['Cybersecurity', '#1d5fd1'], ['Artificial Intelligence', '#7c3aed'], ['Networking', '#0891b2'], ['Database', '#16a34a'],
-  ['Digital Forensics', '#e11d48'], ['Software Engineering', '#ea580c'], ['Information Security', '#0f766e'], ['Data Science', '#ca8a04'],
-  ['Internet of Things', '#4f46e5'], ['Mathematics & Modelling', '#be185d'], ['Defence Technology', '#475569'], ['Others', '#64748b']
+  ['Keselamatan Siber', '#1d5fd1'], ['Kecerdasan Buatan', '#7c3aed'], ['Rangkaian', '#0891b2'], ['Pangkalan Data', '#16a34a'],
+  ['Forensik Digital', '#e11d48'], ['Kejuruteraan Perisian', '#ea580c'], ['Keselamatan Maklumat', '#0f766e'], ['Sains Data', '#ca8a04'],
+  ['Internet Benda (IoT)', '#4f46e5'], ['Matematik & Pemodelan', '#be185d'], ['Teknologi Pertahanan', '#475569'], ['Lain-lain', '#64748b']
 ];
+// Pemetaan nama lama (Inggeris) -> Bahasa Malaysia, digunakan oleh terjemahDataKeBM() untuk pangkalan data sedia ada.
+var CATEGORY_MS = { 'Cybersecurity': 'Keselamatan Siber', 'Artificial Intelligence': 'Kecerdasan Buatan', 'Networking': 'Rangkaian', 'Database': 'Pangkalan Data', 'Digital Forensics': 'Forensik Digital', 'Software Engineering': 'Kejuruteraan Perisian', 'Information Security': 'Keselamatan Maklumat', 'Data Science': 'Sains Data', 'Internet of Things': 'Internet Benda (IoT)', 'Mathematics & Modelling': 'Matematik & Pemodelan', 'Defence Technology': 'Teknologi Pertahanan', 'Others': 'Lain-lain' };
 
 // =====================================================================
 // SETUP (run manually from the editor)
@@ -58,21 +60,35 @@ function setup() {
   if (blank && ss.getSheets().length > 1 && blank.getLastRow() === 0) ss.deleteSheet(blank);
 
   if (!rows_('expertise_categories').length) {
-    DEFAULT_CATEGORIES.forEach(function (c) { insert_('expertise_categories', { id: uid_('cat'), name: c[0], color: c[1], description: c[0] + ' and related topics.', created_at: now_(), updated_at: now_() }); });
+    DEFAULT_CATEGORIES.forEach(function (c) { insert_('expertise_categories', { id: uid_('cat'), name: c[0], color: c[1], description: c[0] + ' dan topik berkaitan.', created_at: now_(), updated_at: now_() }); });
   }
   if (!rows_('users').length) {
     var salt = uid_('s');
-    insert_('users', { id: 'usr_admin', username: 'admin', email: 'admin@fstp.upnm.edu.my', full_name: 'Faculty Administrator', role: 'admin', department: 'Faculty Office', status: 'Active', salt: salt, password_hash: hash_(salt, 'admin'), last_login: '', created_at: now_(), updated_at: now_() });
+    insert_('users', { id: 'usr_admin', username: 'admin', email: 'admin@fstp.upnm.edu.my', full_name: 'Pentadbir Fakulti', role: 'admin', department: 'Pejabat Fakulti', status: 'Active', salt: salt, password_hash: hash_(salt, 'admin'), last_login: '', created_at: now_(), updated_at: now_() });
   }
   folder_();                                              // creates the Drive folder for uploads
-  Logger.log('Setup complete. Sign in as admin / admin and change the password immediately.');
+  Logger.log('Persediaan selesai. Log masuk sebagai admin / admin dan tukar kata laluan dengan segera.');
+}
+
+/**
+ * Jalankan SEKALI jika pangkalan data dibuat sebelum versi Bahasa Malaysia:
+ * menukar nama kategori kepakaran asal (Inggeris) dan akaun pentadbir kepada Bahasa Malaysia.
+ * Data contoh lama (rekod berbahasa Inggeris) perlu dibuang dan dimuatkan semula daripada Akaun > Data contoh.
+ */
+function terjemahDataKeBM() {
+  rows_('expertise_categories').forEach(function (c) {
+    if (CATEGORY_MS[c.name]) update_('expertise_categories', c.id, { name: CATEGORY_MS[c.name], description: CATEGORY_MS[c.name] + ' dan topik berkaitan.', updated_at: now_() });
+  });
+  var a = find_('users', 'usr_admin');
+  if (a) update_('users', 'usr_admin', { full_name: 'Pentadbir Fakulti', department: 'Pejabat Fakulti', updated_at: now_() });
+  Logger.log('Selesai: kategori dan akaun pentadbir telah diterjemah ke Bahasa Malaysia.');
 }
 
 /** Sets the admin account password to 'admin' (first-phase default). Run by hand if setup() ran earlier with another password. */
 function resetAdminPassword() {
   var salt = uid_('s');
   update_('users', 'usr_admin', { salt: salt, password_hash: hash_(salt, 'admin'), status: 'Active', updated_at: now_() });
-  Logger.log('Admin password is now: admin');
+  Logger.log('Kata laluan admin kini: admin');
 }
 
 /** Wipes ALL data rows (keeps headers). Run by hand only. */
@@ -93,14 +109,14 @@ function doPost(e) {
   try {
     var req = JSON.parse(e.postData.contents);
     var fn = ACTIONS[req.action];
-    if (!fn) throw httpErr_('Unknown action: ' + req.action, 404);
+    if (!fn) throw httpErr_('Tindakan tidak diketahui: ' + req.action, 404);
     var ctx = (req.action === 'login') ? null : session_(req.token);
     var write = WRITES[req.action];
     var lock = write ? LockService.getScriptLock() : null;
     if (lock) lock.waitLock(20000);
     try { out = { ok: true, data: fn(req.payload || {}, ctx, req.token) }; } finally { if (lock) lock.releaseLock(); }
   } catch (err) {
-    out = { ok: false, error: err.publicMessage || 'Server error. Please try again.', code: err.code || 500 };
+    out = { ok: false, error: err.publicMessage || 'Ralat pelayan. Sila cuba lagi.', code: err.code || 500 };
     if (!err.publicMessage) console.error(err && err.stack || err);
   }
   return json_(out);
@@ -116,8 +132,8 @@ var ACTIONS = {
   login: function (p) {
     var key = String(p.username || '').trim().toLowerCase();
     var u = rows_('users').filter(function (x) { return String(x.username).toLowerCase() === key || String(x.email).toLowerCase() === key; })[0];
-    if (!u || hash_(u.salt, String(p.password || '')) !== u.password_hash) throw httpErr_('Invalid username or password.', 401);
-    if (u.status !== 'Active') throw httpErr_('This account is inactive. Contact the administrator.', 403);
+    if (!u || hash_(u.salt, String(p.password || '')) !== u.password_hash) throw httpErr_('Nama pengguna atau kata laluan tidak sah.', 401);
+    if (u.status !== 'Active') throw httpErr_('Akaun ini tidak aktif. Sila hubungi pentadbir.', 403);
     var token = Utilities.getUuid() + Utilities.getUuid();
     CacheService.getScriptCache().put('tok:' + token, u.id, SESSION_SECONDS);
     update_('users', u.id, { last_login: now_() });
@@ -137,28 +153,28 @@ var ACTIONS = {
 
   create: function (p, ctx) {
     var table = p.table, row = p.row || {};
-    if (table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || table === 'activity_log' || table === 'documents')) throw httpErr_('Invalid table.', 400);
+    if (table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || table === 'activity_log' || table === 'documents')) throw httpErr_('Jadual tidak sah.', 400);
     var admin = ctx.user.role === 'admin';
     if (table === 'expertise_categories') needAdmin_(ctx);
     var r = clean_(table, row); r.id = uid_(table.slice(0, 3)); r.created_at = now_(); r.updated_at = now_();
     if (OWNED.indexOf(table) >= 0) {
       r.lecturer_id = admin ? row.lecturer_id : (ctx.lecturer && ctx.lecturer.id);
-      if (!r.lecturer_id || !find_('lecturers', r.lecturer_id)) throw httpErr_('Lecturer required.', 400);
+      if (!r.lecturer_id || !find_('lecturers', r.lecturer_id)) throw httpErr_('Pensyarah diperlukan.', 400);
       if (r.document_id) assertOwnsDoc_(r.document_id, r.lecturer_id);
-    } else if (rows_(table).some(function (c) { return String(c.name).toLowerCase() === String(r.name).toLowerCase(); })) throw httpErr_('Category already exists.', 409);
+    } else if (rows_(table).some(function (c) { return String(c.name).toLowerCase() === String(r.name).toLowerCase(); })) throw httpErr_('Kategori sudah wujud.', 409);
     insert_(table, r);
-    if (r.lecturer_id) log_(r.lecturer_id, 'Added new ' + SINGULAR[table]);
+    if (r.lecturer_id) log_(r.lecturer_id, 'Menambah ' + SINGULAR[table] + ' baharu');
     return r;
   },
 
   update: function (p, ctx) {
     var table = p.table;
-    if (table !== 'lecturers' && table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || table === 'activity_log')) throw httpErr_('Invalid table.', 400);
-    var row = find_(table, p.id); if (!row) throw httpErr_('Record not found.', 404);
+    if (table !== 'lecturers' && table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || table === 'activity_log')) throw httpErr_('Jadual tidak sah.', 400);
+    var row = find_(table, p.id); if (!row) throw httpErr_('Rekod tidak ditemui.', 404);
     var admin = ctx.user.role === 'admin', mine = ctx.lecturer && ctx.lecturer.id;
     if (table === 'expertise_categories') needAdmin_(ctx);
-    else if (table === 'lecturers') { if (!admin && row.id !== mine) throw httpErr_('Forbidden.', 403); }
-    else if (!admin && row.lecturer_id !== mine) throw httpErr_('Forbidden.', 403);
+    else if (table === 'lecturers') { if (!admin && row.id !== mine) throw httpErr_('Tidak dibenarkan.', 403); }
+    else if (!admin && row.lecturer_id !== mine) throw httpErr_('Tidak dibenarkan.', 403);
     var patch = clean_(table, p.patch || {});
     ['id', 'lecturer_id', 'user_id', 'created_at'].forEach(function (k) { delete patch[k]; });
     if (table === 'lecturers' && !admin) delete patch.staff_id;
@@ -168,49 +184,49 @@ var ACTIONS = {
     var saved = update_(table, p.id, patch);
     if (table === 'lecturers') {
       update_('users', saved.user_id, { full_name: saved.full_name, email: saved.email, department: saved.department });
-      log_(saved.id, 'Updated profile information');
-    } else if (saved.lecturer_id) log_(saved.lecturer_id, 'Updated ' + SINGULAR[table] + ' information');
+      log_(saved.id, 'Mengemas kini maklumat profil');
+    } else if (saved.lecturer_id) log_(saved.lecturer_id, 'Mengemas kini maklumat ' + SINGULAR[table]);
     return saved;
   },
 
   remove: function (p, ctx) {
     var table = p.table;
-    if (table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || table === 'activity_log')) throw httpErr_('Invalid table.', 400);
-    var row = find_(table, p.id); if (!row) throw httpErr_('Record not found.', 404);
+    if (table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || table === 'activity_log')) throw httpErr_('Jadual tidak sah.', 400);
+    var row = find_(table, p.id); if (!row) throw httpErr_('Rekod tidak ditemui.', 404);
     var admin = ctx.user.role === 'admin';
     if (table === 'expertise_categories') {
       needAdmin_(ctx);
-      if (rows_('expertise').some(function (e) { return e.category_id === p.id; })) throw httpErr_('Category is in use by lecturer expertise records and cannot be deleted.', 409);
-    } else if (!admin && row.lecturer_id !== (ctx.lecturer && ctx.lecturer.id)) throw httpErr_('Forbidden.', 403);
+      if (rows_('expertise').some(function (e) { return e.category_id === p.id; })) throw httpErr_('Kategori ini sedang digunakan oleh rekod kepakaran pensyarah dan tidak boleh dipadam.', 409);
+    } else if (!admin && row.lecturer_id !== (ctx.lecturer && ctx.lecturer.id)) throw httpErr_('Tidak dibenarkan.', 403);
     if (table === 'documents') {
       trashFile_(row.file_ref);
       OWNED.forEach(function (t) { if (t === 'documents' || t === 'activity_log') return; rows_(t).forEach(function (x) { if (x.document_id === p.id) update_(t, x.id, { document_id: '' }); }); });
     }
     delete_(table, p.id);
-    if (row.lecturer_id) log_(row.lecturer_id, 'Removed ' + SINGULAR[table]);
+    if (row.lecturer_id) log_(row.lecturer_id, 'Memadam ' + SINGULAR[table]);
     return { id: p.id };
   },
 
   upload: function (p, ctx) {
     var admin = ctx.user.role === 'admin', lid = admin ? p.lecturer_id : (ctx.lecturer && ctx.lecturer.id);
-    if (!lid || !find_('lecturers', lid)) throw httpErr_('Lecturer required.', 400);
-    if (Number(p.size) > MAX_FILE_BYTES) throw httpErr_('File exceeds 5 MB.', 400);
+    if (!lid || !find_('lecturers', lid)) throw httpErr_('Pensyarah diperlukan.', 400);
+    if (Number(p.size) > MAX_FILE_BYTES) throw httpErr_('Fail melebihi 5 MB.', 400);
     var m = /^data:([\w\/+.\-]+);base64,(.+)$/.exec(String(p.dataUrl || ''));
     var okMime = /^(application\/pdf|image\/png|image\/jpeg|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document)$/;
-    if (!m || !okMime.test(m[1])) throw httpErr_('Unsupported file type.', 400);
+    if (!m || !okMime.test(m[1])) throw httpErr_('Jenis fail tidak disokong.', 400);
     var bytes = Utilities.base64Decode(m[2]);
-    if (bytes.length > MAX_FILE_BYTES) throw httpErr_('File exceeds 5 MB.', 400);
+    if (bytes.length > MAX_FILE_BYTES) throw httpErr_('Fail melebihi 5 MB.', 400);
     var safeName = String(p.file_name || 'file').replace(/[^\w.\- ]/g, '_').slice(0, 120);
     var file = folder_().createFile(Utilities.newBlob(bytes, m[1], lid + '_' + Date.now() + '_' + safeName));
     var row = { id: uid_('doc'), lecturer_id: lid, doc_type: String(p.doc_type || 'Other'), title: String(p.title || safeName), file_name: safeName, mime: m[1], size: bytes.length, file_ref: file.getId(), created_at: now_(), updated_at: now_() };
-    insert_('documents', row); log_(lid, 'Uploaded document');
+    insert_('documents', row); log_(lid, 'Memuat naik dokumen');
     delete row.file_ref;               // never expose Drive ids to the browser
     return row;
   },
 
   download: function (p, ctx) {
-    var d = find_('documents', p.id); if (!d) throw httpErr_('Document not found.', 404);
-    if (ctx.user.role !== 'admin' && d.lecturer_id !== (ctx.lecturer && ctx.lecturer.id)) throw httpErr_('Forbidden.', 403);
+    var d = find_('documents', p.id); if (!d) throw httpErr_('Dokumen tidak ditemui.', 404);
+    if (ctx.user.role !== 'admin' && d.lecturer_id !== (ctx.lecturer && ctx.lecturer.id)) throw httpErr_('Tidak dibenarkan.', 403);
     var blob = DriveApp.getFileById(d.file_ref).getBlob();
     return { file_name: d.file_name, mime: d.mime, dataUrl: 'data:' + d.mime + ';base64,' + Utilities.base64Encode(blob.getBytes()) };
   },
@@ -220,10 +236,10 @@ var ACTIONS = {
     needAdmin_(ctx);
     var tables = p.tables || {}, out = {};
     Object.keys(tables).forEach(function (t) {
-      if (!T[t]) throw httpErr_('Unknown table: ' + t, 400);
+      if (!T[t]) throw httpErr_('Jadual tidak diketahui: ' + t, 400);
       tables[t].forEach(function (r) {
-        if (String(r.id).indexOf('demo_') !== 0) throw httpErr_('Bulk import only accepts demo_ ids.', 400);
-        if (t === 'users' && r.role !== 'lecturer') throw httpErr_('Bulk import cannot create admins.', 400);
+        if (String(r.id).indexOf('demo_') !== 0) throw httpErr_('Import pukal hanya menerima id demo_.', 400);
+        if (t === 'users' && r.role !== 'lecturer') throw httpErr_('Import pukal tidak boleh mencipta pentadbir.', 400);
       });
     });
     Object.keys(tables).forEach(function (t) {
@@ -258,27 +274,27 @@ var ACTIONS = {
   createUser: function (p, ctx) {
     needAdmin_(ctx);
     var u = p.user || {};
-    if (!u.username || !u.email || !u.full_name || !u.password) throw httpErr_('Missing required fields.', 400);
-    if (String(u.password).length < 8) throw httpErr_('Password must be at least 8 characters.', 400);
+    if (!u.username || !u.email || !u.full_name || !u.password) throw httpErr_('Medan wajib tidak lengkap.', 400);
+    if (String(u.password).length < 8) throw httpErr_('Kata laluan mestilah sekurang-kurangnya 8 aksara.', 400);
     var all = rows_('users');
-    if (all.some(function (x) { return String(x.username).toLowerCase() === String(u.username).toLowerCase(); })) throw httpErr_('Username already taken.', 409);
-    if (all.some(function (x) { return String(x.email).toLowerCase() === String(u.email).toLowerCase(); })) throw httpErr_('Email already registered.', 409);
+    if (all.some(function (x) { return String(x.username).toLowerCase() === String(u.username).toLowerCase(); })) throw httpErr_('Nama pengguna sudah digunakan.', 409);
+    if (all.some(function (x) { return String(x.email).toLowerCase() === String(u.email).toLowerCase(); })) throw httpErr_('E-mel sudah didaftarkan.', 409);
     var role = u.role === 'admin' ? 'admin' : 'lecturer', salt = uid_('s');
     var row = { id: uid_('usr'), username: u.username, email: u.email, full_name: u.full_name, role: role, department: u.department || '', status: u.status || 'Active', salt: salt, password_hash: hash_(salt, u.password), last_login: '', created_at: now_(), updated_at: now_() };
     insert_('users', row);
     if (role === 'lecturer') {
       var n = rows_('lecturers').length + 1;
-      insert_('lecturers', { id: uid_('lec'), user_id: row.id, staff_id: 'UPNM' + ('000' + n).slice(-3), full_name: row.full_name, email: row.email, department: row.department, position: 'Lecturer', phone: '', location: '', bio: '', photo: '', created_at: now_(), updated_at: now_() });
+      insert_('lecturers', { id: uid_('lec'), user_id: row.id, staff_id: 'UPNM' + ('000' + n).slice(-3), full_name: row.full_name, email: row.email, department: row.department, position: 'Pensyarah', phone: '', location: '', bio: '', photo: '', created_at: now_(), updated_at: now_() });
     }
     return safeUser_(row);
   },
 
   updateUser: function (p, ctx) {
     needAdmin_(ctx);
-    var u = find_('users', p.id); if (!u) throw httpErr_('User not found.', 404);
+    var u = find_('users', p.id); if (!u) throw httpErr_('Pengguna tidak ditemui.', 404);
     var patch = p.patch || {};
-    if (u.id === ctx.user.id && patch.status && patch.status !== 'Active') throw httpErr_('You cannot deactivate your own account.', 400);
-    if (patch.email && rows_('users').some(function (x) { return x.id !== u.id && String(x.email).toLowerCase() === String(patch.email).toLowerCase(); })) throw httpErr_('Email already registered.', 409);
+    if (u.id === ctx.user.id && patch.status && patch.status !== 'Active') throw httpErr_('Anda tidak boleh menyahaktifkan akaun sendiri.', 400);
+    if (patch.email && rows_('users').some(function (x) { return x.id !== u.id && String(x.email).toLowerCase() === String(patch.email).toLowerCase(); })) throw httpErr_('E-mel sudah didaftarkan.', 409);
     var set = { updated_at: now_() };
     ['full_name', 'email', 'department', 'status'].forEach(function (k) { if (patch[k] !== undefined) set[k] = patch[k]; });
     var saved = update_('users', u.id, set);
@@ -289,22 +305,22 @@ var ACTIONS = {
 
   resetPassword: function (p, ctx) {
     needAdmin_(ctx);
-    if (!p.password || String(p.password).length < 8) throw httpErr_('Password must be at least 8 characters.', 400);
-    if (!find_('users', p.id)) throw httpErr_('User not found.', 404);
+    if (!p.password || String(p.password).length < 8) throw httpErr_('Kata laluan mestilah sekurang-kurangnya 8 aksara.', 400);
+    if (!find_('users', p.id)) throw httpErr_('Pengguna tidak ditemui.', 404);
     var salt = uid_('s'); update_('users', p.id, { salt: salt, password_hash: hash_(salt, p.password), updated_at: now_() });
     return true;
   },
 
   changePassword: function (p, ctx) {
-    if (!p.password || String(p.password).length < 8) throw httpErr_('Password must be at least 8 characters.', 400);
-    if (hash_(ctx.user.salt, String(p.current || '')) !== ctx.user.password_hash) throw httpErr_('Current password is incorrect.', 400);
+    if (!p.password || String(p.password).length < 8) throw httpErr_('Kata laluan mestilah sekurang-kurangnya 8 aksara.', 400);
+    if (hash_(ctx.user.salt, String(p.current || '')) !== ctx.user.password_hash) throw httpErr_('Kata laluan semasa tidak betul.', 400);
     var salt = uid_('s'); update_('users', ctx.user.id, { salt: salt, password_hash: hash_(salt, p.password), updated_at: now_() });
     return true;
   },
 
   deleteUser: function (p, ctx) {
     needAdmin_(ctx);
-    if (p.id === ctx.user.id) throw httpErr_('You cannot delete your own account.', 400);
+    if (p.id === ctx.user.id) throw httpErr_('Anda tidak boleh memadam akaun sendiri.', 400);
     var lec = rows_('lecturers').filter(function (l) { return l.user_id === p.id; })[0];
     if (lec) {
       rows_('documents').filter(function (d) { return d.lecturer_id === lec.id; }).forEach(function (d) { trashFile_(d.file_ref); });
@@ -322,7 +338,7 @@ var ACTIONS = {
 
 function sheet_(t) {
   var sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(t);
-  if (!sh) throw httpErr_('Database not initialised. Run setup() in Apps Script.', 500);
+  if (!sh) throw httpErr_('Pangkalan data belum disediakan. Jalankan setup() dalam Apps Script.', 500);
   return sh;
 }
 function rows_(t) {
@@ -335,7 +351,7 @@ function rows_(t) {
 function find_(t, id) { return rows_(t).filter(function (r) { return r.id === id; })[0]; }
 function toArr_(t, o) { return T[t].map(function (c) { return o[c] === undefined || o[c] === null ? '' : o[c]; }); }
 function insert_(t, o) {
-  Object.keys(o).forEach(function (k) { if (typeof o[k] === 'string' && o[k].length > MAX_CELL_CHARS) throw httpErr_('A value is too large to store (' + k + ').', 400); });
+  Object.keys(o).forEach(function (k) { if (typeof o[k] === 'string' && o[k].length > MAX_CELL_CHARS) throw httpErr_('Nilai terlalu besar untuk disimpan (' + k + ').', 400); });
   sheet_(t).appendRow(toArr_(t, o));
 }
 function rowIndex_(t, id) {
@@ -345,10 +361,10 @@ function rowIndex_(t, id) {
   return -1;
 }
 function update_(t, id, patch) {
-  var idx = rowIndex_(t, id); if (idx < 0) throw httpErr_('Record not found.', 404);
+  var idx = rowIndex_(t, id); if (idx < 0) throw httpErr_('Rekod tidak ditemui.', 404);
   var sh = sheet_(t), cols = T[t], range = sh.getRange(idx, 1, 1, cols.length), cur = range.getValues()[0], o = {};
   cols.forEach(function (c, i) { o[c] = cur[i]; });
-  Object.keys(patch).forEach(function (k) { if (cols.indexOf(k) >= 0 && patch[k] !== undefined) { if (typeof patch[k] === 'string' && patch[k].length > MAX_CELL_CHARS) throw httpErr_('A value is too large to store (' + k + '). Use a smaller image.', 400); o[k] = patch[k]; } });
+  Object.keys(patch).forEach(function (k) { if (cols.indexOf(k) >= 0 && patch[k] !== undefined) { if (typeof patch[k] === 'string' && patch[k].length > MAX_CELL_CHARS) throw httpErr_('Nilai terlalu besar untuk disimpan (' + k + '). Gunakan gambar yang lebih kecil.', 400); o[k] = patch[k]; } });
   range.setValues([toArr_(t, o)]);
   var out = {}; cols.forEach(function (c) { out[c] = NUMERIC[c] && o[c] !== '' ? Number(o[c]) : o[c]; });
   return out;
@@ -367,14 +383,14 @@ function clean_(t, o) { var r = {}; T[t].forEach(function (c) { if (o[c] !== und
 
 function session_(token) {
   var id = token && CacheService.getScriptCache().get('tok:' + token);
-  if (!id) throw httpErr_('Session expired. Please sign in again.', 401);
+  if (!id) throw httpErr_('Sesi tamat. Sila log masuk semula.', 401);
   var user = find_('users', id);
-  if (!user || user.status !== 'Active') throw httpErr_('Account is inactive.', 401);
+  if (!user || user.status !== 'Active') throw httpErr_('Akaun tidak aktif.', 401);
   var lecturer = rows_('lecturers').filter(function (l) { return l.user_id === user.id; })[0] || null;
   return { user: user, lecturer: lecturer };
 }
-function needAdmin_(ctx) { if (ctx.user.role !== 'admin') throw httpErr_('Admin only.', 403); }
-function assertOwnsDoc_(docId, lid) { var d = find_('documents', docId); if (!d || d.lecturer_id !== lid) throw httpErr_('Invalid supporting document.', 400); }
+function needAdmin_(ctx) { if (ctx.user.role !== 'admin') throw httpErr_('Untuk pentadbir sahaja.', 403); }
+function assertOwnsDoc_(docId, lid) { var d = find_('documents', docId); if (!d || d.lecturer_id !== lid) throw httpErr_('Dokumen sokongan tidak sah.', 400); }
 function safeUser_(u) { var o = {}; Object.keys(u).forEach(function (k) { if (k !== 'password_hash' && k !== 'salt') o[k] = u[k]; }); return o; }
 function hash_(salt, pw) {
   return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + ':' + pw, Utilities.Charset.UTF_8)

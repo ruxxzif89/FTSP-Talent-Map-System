@@ -2,19 +2,21 @@
 const rng = (seed) => () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 
 const CATS = [
-  ['Cybersecurity', '#1d5fd1', ['Digital Forensics', 'Network Security', 'Cyber Threat Intelligence', 'Penetration Testing', 'Incident Response']],
-  ['Artificial Intelligence', '#7c3aed', ['Machine Learning', 'Computer Vision', 'Natural Language Processing', 'Deep Learning']],
-  ['Networking', '#0891b2', ['Wireless Networks', 'Network Protocols', 'Software-Defined Networking', 'Network Monitoring']],
-  ['Database', '#16a34a', ['Database Design', 'Data Warehousing', 'Query Optimization', 'NoSQL Systems']],
-  ['Digital Forensics', '#e11d48', ['Mobile Forensics', 'Memory Forensics', 'Cloud Forensics', 'Evidence Handling']],
-  ['Software Engineering', '#ea580c', ['Requirements Engineering', 'Software Testing', 'DevOps', 'Software Architecture']],
-  ['Information Security', '#0f766e', ['Security Audit', 'Risk Management', 'Cryptography', 'Security Policy']],
-  ['Data Science', '#ca8a04', ['Data Analytics', 'Big Data', 'Predictive Modelling', 'Data Visualization']],
-  ['Internet of Things', '#4f46e5', ['Embedded Systems', 'Smart Sensors', 'IoT Security', 'Edge Computing']],
-  ['Mathematics & Modelling', '#be185d', ['Numerical Methods', 'Operations Research', 'Statistics', 'Optimization']],
-  ['Defence Technology', '#475569', ['Command & Control Systems', 'Military Simulation', 'Defence Analytics', 'Secure Communications']],
-  ['Others', '#64748b', ['Education Technology', 'Human-Computer Interaction', 'E-Government']],
+  ['Keselamatan Siber', '#1d5fd1', ['Forensik Digital', 'Keselamatan Rangkaian', 'Perisikan Ancaman Siber', 'Ujian Penembusan', 'Tindak Balas Insiden']],
+  ['Kecerdasan Buatan', '#7c3aed', ['Pembelajaran Mesin', 'Penglihatan Komputer', 'Pemprosesan Bahasa Semula Jadi', 'Pembelajaran Mendalam']],
+  ['Rangkaian', '#0891b2', ['Rangkaian Tanpa Wayar', 'Protokol Rangkaian', 'Rangkaian Tertakrif Perisian', 'Pemantauan Rangkaian']],
+  ['Pangkalan Data', '#16a34a', ['Reka Bentuk Pangkalan Data', 'Gudang Data', 'Pengoptimuman Pertanyaan', 'Sistem NoSQL']],
+  ['Forensik Digital', '#e11d48', ['Forensik Mudah Alih', 'Forensik Memori', 'Forensik Awan', 'Pengendalian Bukti']],
+  ['Kejuruteraan Perisian', '#ea580c', ['Kejuruteraan Keperluan', 'Pengujian Perisian', 'DevOps', 'Seni Bina Perisian']],
+  ['Keselamatan Maklumat', '#0f766e', ['Audit Keselamatan', 'Pengurusan Risiko', 'Kriptografi', 'Dasar Keselamatan']],
+  ['Sains Data', '#ca8a04', ['Analitik Data', 'Data Raya', 'Pemodelan Ramalan', 'Visualisasi Data']],
+  ['Internet Benda (IoT)', '#4f46e5', ['Sistem Terbenam', 'Penderia Pintar', 'Keselamatan IoT', 'Pengkomputeran Pinggir']],
+  ['Matematik & Pemodelan', '#be185d', ['Kaedah Berangka', 'Penyelidikan Operasi', 'Statistik', 'Pengoptimuman']],
+  ['Teknologi Pertahanan', '#475569', ['Sistem Perintah & Kawalan', 'Simulasi Ketenteraan', 'Analitik Pertahanan', 'Komunikasi Selamat']],
+  ['Lain-lain', '#64748b', ['Teknologi Pendidikan', 'Interaksi Manusia-Komputer', 'E-Kerajaan']],
 ];
+// Nama lama (Inggeris) -> supaya pangkalan data sedia ada yang belum diterjemah masih boleh dipadankan.
+const CAT_EN = { 'Keselamatan Siber': 'Cybersecurity', 'Kecerdasan Buatan': 'Artificial Intelligence', 'Rangkaian': 'Networking', 'Pangkalan Data': 'Database', 'Forensik Digital': 'Digital Forensics', 'Kejuruteraan Perisian': 'Software Engineering', 'Keselamatan Maklumat': 'Information Security', 'Sains Data': 'Data Science', 'Internet Benda (IoT)': 'Internet of Things', 'Matematik & Pemodelan': 'Mathematics & Modelling', 'Teknologi Pertahanan': 'Defence Technology', 'Lain-lain': 'Others' };
 
 const MALE = ['Ahmad', 'Harun', 'Zulkifli', 'Faizal', 'Hafiz', 'Rashid', 'Imran', 'Syafiq', 'Nazri', 'Kamal', 'Azman', 'Shahrul', 'Khairul', 'Razak'];
 const FEMALE = ['Aisyah', 'Farhana', 'Nurul', 'Siti', 'Zarina', 'Hidayah', 'Aminah', 'Najwa', 'Rohana', 'Liyana', 'Sofea', 'Marlina', 'Fatimah', 'Haslinda'];
@@ -23,13 +25,13 @@ const CN_FIRST = ['Wei Ming', 'Jia Hui', 'Kah Seng', 'Mei Ling', 'Chee Keong', '
 const CN_LAST = ['Tan', 'Lim', 'Lee', 'Wong', 'Chong', 'Ng', 'Teh'];
 const IN_FIRST = ['Kavitha', 'Suresh', 'Priya', 'Arun', 'Meena', 'Vikram', 'Deepa', 'Ganesh'];
 const IN_FATHER = ['Rajan', 'Krishnan', 'Subramaniam', 'Nair', 'Pillai', 'Maniam'];
-const VENUES = ['IEEE Access', 'Journal of Information Security', 'Computers & Security', 'Pertanika Journal of Science & Technology', 'International Journal of Advanced Computer Science', 'Defence S&T Technical Bulletin', 'ACM Computing Surveys', 'Malaysian Journal of Computer Science'];
+const VENUES = ['IEEE Access', 'Jurnal Keselamatan Maklumat Malaysia', 'Computers & Security', 'Pertanika Journal of Science & Technology', 'Jurnal Sains Komputer Malaysia', 'Buletin Teknikal Sains & Teknologi Pertahanan', 'ACM Computing Surveys', 'Jurnal Teknologi (Sains & Kejuruteraan)'];
 const ISSUERS = [['Certified Information Systems Security Professional (CISSP)', '(ISC)²'], ['Certified Ethical Hacker (CEH)', 'EC-Council'], ['CompTIA Security+', 'CompTIA'], ['AWS Certified Solutions Architect', 'Amazon Web Services'], ['Professional Scrum Master I', 'Scrum.org'], ['Cisco Certified Network Associate (CCNA)', 'Cisco'], ['TensorFlow Developer Certificate', 'Google'], ['Oracle Certified Professional, MySQL', 'Oracle'], ['GIAC Certified Forensic Analyst (GCFA)', 'GIAC']];
-const COURSES = [['Ethical Hacking and Penetration Testing', 'EC-Council'], ['Advanced Digital Forensics Workshop', 'CyberSecurity Malaysia'], ['Machine Learning for Practitioners', 'MIMOS'], ['Teaching & Learning in Higher Education', 'UPNM Centre for Academic Excellence'], ['Research Methodology Bootcamp', 'Ministry of Higher Education'], ['Cloud Security Fundamentals', 'AWS Academy'], ['Network Defence Simulation', 'Malaysian Armed Forces Cyber Division'], ['Data Visualization with Python', 'Universiti Malaya']];
-const CLIENTS = ['Agensi Keselamatan Negara', 'Malaysian Armed Forces', 'CyberSecurity Malaysia', 'MIMOS Berhad', 'Ministry of Defence', 'Royal Malaysia Police', 'TM Technology Services'];
-const AWARDS = [['Best Researcher Award', 'Research'], ['Excellent Service Award', 'Service'], ['Gold Medal, Innovation Expo', 'Innovation'], ['Best Teaching Award', 'Teaching'], ['Faculty Leadership Award', 'Leadership']];
-const TOPICS = ['Smart Cities', 'IoT Environments', 'Defence Networks', 'Cloud Platforms', 'Critical Infrastructure', 'Mobile Devices', 'Government Systems', 'Autonomous Systems', 'Healthcare Data', 'Supply Chains'];
-const PT = ['A Review of {a} in {t}', 'Towards a Framework for {a} in {t}', 'Detecting Anomalies with {a} in {t}', '{a}: A Comparative Study for {t}', 'Machine Learning Approaches to {a} for {t}', 'A Secure Model for {a} in {t}'];
+const COURSES = [['Penggodaman Beretika dan Ujian Penembusan', 'EC-Council'], ['Bengkel Forensik Digital Lanjutan', 'CyberSecurity Malaysia'], ['Pembelajaran Mesin untuk Pengamal', 'MIMOS'], ['Pengajaran & Pembelajaran dalam Pendidikan Tinggi', 'Pusat Kecemerlangan Akademik UPNM'], ['Bengkel Metodologi Penyelidikan', 'Kementerian Pendidikan Tinggi'], ['Asas Keselamatan Awan', 'AWS Academy'], ['Simulasi Pertahanan Rangkaian', 'Bahagian Siber Angkatan Tentera Malaysia'], ['Visualisasi Data dengan Python', 'Universiti Malaya']];
+const CLIENTS = ['Agensi Keselamatan Negara', 'Angkatan Tentera Malaysia', 'CyberSecurity Malaysia', 'MIMOS Berhad', 'Kementerian Pertahanan', 'Polis Diraja Malaysia', 'TM Technology Services'];
+const AWARDS = [['Anugerah Penyelidik Terbaik', 'Penyelidikan'], ['Anugerah Perkhidmatan Cemerlang', 'Perkhidmatan'], ['Pingat Emas, Ekspo Inovasi', 'Inovasi'], ['Anugerah Pengajaran Terbaik', 'Pengajaran'], ['Anugerah Kepimpinan Fakulti', 'Kepimpinan']];
+const TOPICS = ['Bandar Pintar', 'Persekitaran IoT', 'Rangkaian Pertahanan', 'Platform Awan', 'Infrastruktur Kritikal', 'Peranti Mudah Alih', 'Sistem Kerajaan', 'Sistem Autonomi', 'Data Kesihatan', 'Rantaian Bekalan'];
+const PT = ['Kajian Semula {a} dalam {t}', 'Ke Arah Rangka Kerja {a} dalam {t}', 'Pengesanan Anomali dengan {a} dalam {t}', '{a}: Kajian Perbandingan untuk {t}', 'Pendekatan Pembelajaran Mesin terhadap {a} untuk {t}', 'Model Selamat bagi {a} dalam {t}'];
 
 // opts: count (lecturers), prefix (id prefix, 'demo_' for remote import), categories (reuse existing rows), includeAdmin, docs
 export async function buildSeed(hashPw, opts = {}) {
@@ -43,37 +45,37 @@ export async function buildSeed(hashPw, opts = {}) {
   let n = 0; const id = (p) => `${prefix}${p}_${String(++n).padStart(4, '0')}`;
 
   const cats = categories
-    ? categories.map((c) => ({ ...c, areas: (CATS.find((x) => x[0] === c.name) || [0, 0, ['General Practice']])[2] }))
-    : CATS.map(([name, color, areas]) => { const c = { id: id('cat'), name, color, description: `${name} — ${areas.slice(0, 3).join(', ')} and related topics.`, created_at: iso(300), updated_at: iso(300) }; out.expertise_categories.push(c); return { ...c, areas }; });
-  const cat = (name) => cats.find((c) => c.name === name) || cats[0];
+    ? categories.map((c) => { const row = CATS.find((x) => x[0] === c.name || CAT_EN[x[0]] === c.name); return { ...c, key: row ? row[0] : c.name, areas: row ? row[2] : ['Amalan Am'] }; })
+    : CATS.map(([name, color, areas]) => { const c = { id: id('cat'), name, color, description: `${name} — ${areas.slice(0, 3).join(', ')} dan topik berkaitan.`, created_at: iso(300), updated_at: iso(300) }; out.expertise_categories.push(c); return { ...c, key: name, areas }; });
+  const cat = (name) => cats.find((c) => c.key === name) || cats[0];
 
   // admin
   const adminSalt = 's_admin';
-  if (includeAdmin) out.users.push({ id: 'usr_admin', username: 'admin', email: 'admin@fstp.upnm.edu.my', full_name: 'Faculty Administrator', role: 'admin', department: 'Faculty Office', status: 'Active', salt: adminSalt, password_hash: await hashPw(adminSalt, 'admin'), last_login: '', created_at: iso(300), updated_at: iso(300) });
+  if (includeAdmin) out.users.push({ id: 'usr_admin', username: 'admin', email: 'admin@fstp.upnm.edu.my', full_name: 'Pentadbir Fakulti', role: 'admin', department: 'Pejabat Fakulti', status: 'Active', salt: adminSalt, password_hash: await hashPw(adminSalt, 'admin'), last_login: '', created_at: iso(300), updated_at: iso(300) });
 
   const specs = [
-    { name: 'Dr. Aisyah Binti Ahmad', user: 'aisyah', dept: 'Computer Science', pos: 'Senior Lecturer', female: true, main: ['Cybersecurity', 'Expert', 8], extra: [['Digital Forensics', 'Advanced', 6], ['Networking', 'Intermediate', 4], ['Artificial Intelligence', 'Intermediate', 3], ['Database', 'Beginner', 2]], counts: { research: 8, pubs: 15, certs: 6, train: 10, cons: 4, ach: 5 } },
-    { name: 'Prof. Dr. Harun Bin Ismail', user: 'harun', dept: 'Information Technology', pos: 'Professor', main: ['Cybersecurity', 'Expert', 15], extra: [['Information Security', 'Expert', 14]] },
-    { name: 'Dr. Farhana Binti Omar', user: 'farhana', dept: 'Computer Science', pos: 'Senior Lecturer', female: true, main: ['Cybersecurity', 'Advanced', 6], extra: [['Digital Forensics', 'Advanced', 6]] },
-    { name: 'Dr. Ahmad Bin Zulkifli', user: 'ahmadz', dept: 'Computer Science', pos: 'Senior Lecturer', main: ['Cybersecurity', 'Advanced', 7], extra: [['Information Security', 'Intermediate', 5]] },
+    { name: 'Dr. Aisyah Binti Ahmad', user: 'aisyah', dept: 'Sains Komputer', pos: 'Pensyarah Kanan', female: true, main: ['Keselamatan Siber', 'Pakar', 8], extra: [['Forensik Digital', 'Mahir', 6], ['Rangkaian', 'Pertengahan', 4], ['Kecerdasan Buatan', 'Pertengahan', 3], ['Pangkalan Data', 'Asas', 2]], counts: { research: 8, pubs: 15, certs: 6, train: 10, cons: 4, ach: 5 } },
+    { name: 'Prof. Dr. Harun Bin Ismail', user: 'harun', dept: 'Teknologi Maklumat', pos: 'Profesor', main: ['Keselamatan Siber', 'Pakar', 15], extra: [['Keselamatan Maklumat', 'Pakar', 14]] },
+    { name: 'Dr. Farhana Binti Omar', user: 'farhana', dept: 'Sains Komputer', pos: 'Pensyarah Kanan', female: true, main: ['Keselamatan Siber', 'Mahir', 6], extra: [['Forensik Digital', 'Mahir', 6]] },
+    { name: 'Dr. Ahmad Bin Zulkifli', user: 'ahmadz', dept: 'Sains Komputer', pos: 'Pensyarah Kanan', main: ['Keselamatan Siber', 'Mahir', 7], extra: [['Keselamatan Maklumat', 'Pertengahan', 5]] },
   ];
   const used = new Set(specs.map((s) => s.name));
-  const depts = ['Computer Science', 'Computer Science', 'Information Technology', 'Information Technology', 'Mathematics', 'Engineering', 'Others'];
-  const POS_W = ['Lecturer', 'Lecturer', 'Senior Lecturer', 'Senior Lecturer', 'Senior Lecturer', 'Associate Professor', 'Professor', 'Tutor'];
+  const depts = ['Sains Komputer', 'Sains Komputer', 'Teknologi Maklumat', 'Teknologi Maklumat', 'Matematik', 'Kejuruteraan', 'Lain-lain'];
+  const POS_W = ['Pensyarah', 'Pensyarah', 'Pensyarah Kanan', 'Pensyarah Kanan', 'Pensyarah Kanan', 'Profesor Madya', 'Profesor', 'Tutor'];
   while (specs.length < count) {
     const eth = r(); let first, name, female = r() < 0.5, handle;
     if (eth < 0.72) { first = pick(female ? FEMALE : MALE); name = `${first} ${female ? 'Binti' : 'Bin'} ${pick(FATHER)}`; handle = first; }
     else if (eth < 0.86) { first = pick(CN_FIRST); name = `${pick(CN_LAST)} ${first}`; handle = first.split(' ')[0]; }
     else { first = pick(IN_FIRST); const f = ['Priya', 'Meena', 'Deepa', 'Kavitha'].includes(first); female = f; name = `${first} ${f ? 'a/p' : 'a/l'} ${pick(IN_FATHER)}`; handle = first; }
     const pos = pick(POS_W);
-    const title = pos === 'Professor' ? 'Prof. Dr.' : pos === 'Associate Professor' ? 'Prof. Madya Dr.' : pos === 'Tutor' ? (female ? 'Ms.' : 'Mr.') : r() < 0.8 ? 'Dr.' : (female ? 'Ms.' : 'Mr.');
+    const title = pos === 'Profesor' ? 'Prof. Dr.' : pos === 'Profesor Madya' ? 'Prof. Madya Dr.' : pos === 'Tutor' ? (female ? 'Puan' : 'Encik') : r() < 0.8 ? 'Dr.' : (female ? 'Puan' : 'Encik');
     const full = `${title} ${name}`;
     if (used.has(full)) continue; used.add(full);
     const c1 = pick(cats), c2 = pick(cats), c3 = pick(cats);
-    const senior = pos === 'Professor' ? 8 : pos === 'Associate Professor' ? 5 : pos === 'Tutor' ? 0 : 2;
-    const lvl = () => pick(['Beginner', 'Intermediate', 'Intermediate', 'Advanced', 'Advanced', 'Expert']);
-    specs.push({ name: full, user: (handle.toLowerCase().replace(/[^a-z]/g, '') + specs.length), dept: pick(depts), pos, female, main: [c1.name, pos === 'Tutor' ? 'Beginner' : lvl(), int(1 + senior, 8 + senior * 1.6)],
-      extra: [c2, c3].filter((c, i) => c.name !== c1.name && r() < (i ? 0.35 : 0.8)).map((c) => [c.name, lvl(), int(1, 9 + senior)]), counts: count > 40 ? { research: int(0, 4 + (senior > 4 ? 3 : 0)), pubs: int(0, 6 + senior), certs: int(0, 4), train: int(0, 4), cons: int(0, 2 + (senior > 4 ? 2 : 0)), ach: int(0, 3) } : undefined });
+    const senior = pos === 'Profesor' ? 8 : pos === 'Profesor Madya' ? 5 : pos === 'Tutor' ? 0 : 2;
+    const lvl = () => pick(['Asas', 'Pertengahan', 'Pertengahan', 'Mahir', 'Mahir', 'Pakar']);
+    specs.push({ name: full, user: (handle.toLowerCase().replace(/[^a-z]/g, '') + specs.length), dept: pick(depts), pos, female, main: [c1.key, pos === 'Tutor' ? 'Asas' : lvl(), int(1 + senior, 8 + senior * 1.6)],
+      extra: [c2, c3].filter((c, i) => c.key !== c1.key && r() < (i ? 0.35 : 0.8)).map((c) => [c.name, lvl(), int(1, 9 + senior)]), counts: count > 40 ? { research: int(0, 4 + (senior > 4 ? 3 : 0)), pubs: int(0, 6 + senior), certs: int(0, 4), train: int(0, 4), cons: int(0, 2 + (senior > 4 ? 2 : 0)), ach: int(0, 3) } : undefined });
   }
 
   const lecSalt = 's_lec';
@@ -83,22 +85,22 @@ export async function buildSeed(hashPw, opts = {}) {
     const uidv = id('usr'), lid = id('lec');
     const email = `${s.user}@upnm.edu.my`;
     out.users.push({ id: uidv, username: s.user, email, full_name: s.name, role: 'lecturer', department: s.dept, status: count > 40 ? (i % 31 === 30 ? 'Inactive' : 'Active') : (i === 25 ? 'Inactive' : 'Active'), salt: lecSalt, password_hash: lecHash, last_login: '', created_at: iso(250), updated_at: iso(250) });
-    out.lecturers.push({ id: lid, user_id: uidv, staff_id: 'UPNM' + String(i + 1).padStart(3, '0'), full_name: s.name, email, department: s.dept, position: s.pos, phone: `+60 12-${int(300, 899)} ${int(1000, 9999)}`, location: 'Kuala Lumpur, Malaysia', bio: i === 0 ? 'Cybersecurity researcher focused on threat detection for IoT environments, digital forensics and incident response.' : count > 40 ? `${s.pos} in ${s.dept}. Works on ${pick(cat(s.main[0]).areas).toLowerCase()} and ${s.main[0].toLowerCase()} with a focus on defence and national-security applications.` : '', photo: '', created_at: iso(250), updated_at: iso(int(1, 120)) });
+    out.lecturers.push({ id: lid, user_id: uidv, staff_id: 'UPNM' + String(i + 1).padStart(3, '0'), full_name: s.name, email, department: s.dept, position: s.pos, phone: `+60 12-${int(300, 899)} ${int(1000, 9999)}`, location: 'Kuala Lumpur, Malaysia', bio: i === 0 ? 'Penyelidik keselamatan siber yang menumpukan pengesanan ancaman untuk persekitaran IoT, forensik digital dan tindak balas insiden.' : count > 40 ? `${s.pos} di Jabatan ${s.dept}. Mengusahakan ${pick(cat(s.main[0]).areas).toLowerCase()} dan ${s.main[0].toLowerCase()} dengan tumpuan kepada aplikasi pertahanan dan keselamatan negara.` : '', photo: '', created_at: iso(250), updated_at: iso(int(1, 120)) });
     const c = s.counts || {};
     const areas = [s.main, ...s.extra];
     areas.forEach(([cn, level, years]) => {
       const cc = cat(cn);
-      out.expertise.push({ id: id('exp'), lecturer_id: lid, category_id: cc.id, area: s.name.includes('Aisyah') && cn === 'Cybersecurity' ? 'Cybersecurity' : pick(cc.areas), level, years, interest: '', document_id: '', created_at: iso(200), updated_at: iso(200) });
+      out.expertise.push({ id: id('exp'), lecturer_id: lid, category_id: cc.id, area: s.name.includes('Aisyah') && cn === 'Keselamatan Siber' ? 'Keselamatan Siber' : pick(cc.areas), level, years, interest: '', document_id: '', created_at: iso(200), updated_at: iso(200) });
     });
     const mainCat = cat(s.main[0]);
     const mk = (n2) => Array.from({ length: n2 }, (_, k) => k);
     mk(c.research ?? int(1, 3)).forEach(() => {
       const a = pick(mainCat.areas);
-      out.research.push({ id: id('res'), lecturer_id: lid, title: pick(PT).replace('{a}', a).replace('{t}', pick(TOPICS)), area: mainCat.name, category: pick(['Applied Research', 'Basic Research', 'Experimental Development']), year: int(2019, 2026), status: pick(['Ongoing', 'Completed', 'Completed']), description: `Investigates ${a.toLowerCase()} techniques with practical evaluation.`, document_id: '', created_at: iso(int(10, 200)), updated_at: iso(int(1, 9)) });
+      out.research.push({ id: id('res'), lecturer_id: lid, title: pick(PT).replace('{a}', a).replace('{t}', pick(TOPICS)), area: mainCat.key, category: pick(['Penyelidikan Gunaan', 'Penyelidikan Asas', 'Pembangunan Eksperimen']), year: int(2019, 2026), status: pick(['Sedang Berjalan', 'Selesai', 'Selesai']), description: `Mengkaji teknik ${a.toLowerCase()} dengan penilaian praktikal.`, document_id: '', created_at: iso(int(10, 200)), updated_at: iso(int(1, 9)) });
     });
     mk(c.pubs ?? int(1, 5)).forEach(() => {
       const a = pick(mainCat.areas);
-      out.publications.push({ id: id('pub'), lecturer_id: lid, title: pick(PT).replace('{a}', a).replace('{t}', pick(TOPICS)), type: pick(['Journal Article', 'Journal Article', 'Conference Paper', 'Book Chapter']), venue: pick(VENUES), year: int(2018, 2026), status: pick(['Published', 'Published', 'Published', 'In Press', 'Under Review']), doi: `https://doi.org/10.1109/${int(1000, 9999)}.${int(2020, 2026)}.${int(100000, 999999)}`, document_id: '', created_at: iso(int(10, 200)), updated_at: iso(int(1, 9)) });
+      out.publications.push({ id: id('pub'), lecturer_id: lid, title: pick(PT).replace('{a}', a).replace('{t}', pick(TOPICS)), type: pick(['Artikel Jurnal', 'Artikel Jurnal', 'Kertas Persidangan', 'Bab Buku']), venue: pick(VENUES), year: int(2018, 2026), status: pick(['Diterbitkan', 'Diterbitkan', 'Diterbitkan', 'Dalam Percetakan', 'Dalam Semakan']), doi: `https://doi.org/10.1109/${int(1000, 9999)}.${int(2020, 2026)}.${int(100000, 999999)}`, document_id: '', created_at: iso(int(10, 200)), updated_at: iso(int(1, 9)) });
     });
     mk(c.certs ?? int(0, 3)).forEach((_, k) => {
       const [nm, iss] = ISSUERS[(i + k * 3) % ISSUERS.length];
@@ -108,22 +110,22 @@ export async function buildSeed(hashPw, opts = {}) {
     });
     mk(c.train ?? int(1, 3)).forEach(() => {
       const [nm, org] = pick(COURSES);
-      out.training.push({ id: id('trn'), lecturer_id: lid, name: nm, organizer: org, date: dateStr(int(2022, 2026), int(1, 9), int(1, 28)), status: pick(['Completed', 'Completed', 'Ongoing']), duration_days: int(1, 10), description: '', document_id: '', created_at: iso(int(10, 200)), updated_at: iso(int(1, 9)) });
+      out.training.push({ id: id('trn'), lecturer_id: lid, name: nm, organizer: org, date: dateStr(int(2022, 2026), int(1, 9), int(1, 28)), status: pick(['Selesai', 'Selesai', 'Sedang Berjalan']), duration_days: int(1, 10), description: '', document_id: '', created_at: iso(int(10, 200)), updated_at: iso(int(1, 9)) });
     });
     mk(c.cons ?? int(0, 2)).forEach(() => {
-      out.consultancy.push({ id: id('con'), lecturer_id: lid, project: `${pick(['Security Assessment', 'System Review', 'Technical Advisory', 'Capability Audit'])} for ${pick(TOPICS)}`, client: pick(CLIENTS), role: pick(['Project Leader', 'Consultant', 'Advisor']), year: int(2020, 2026), status: pick(['Completed', 'Ongoing']), description: '', document_id: '', created_at: iso(int(10, 200)), updated_at: iso(int(1, 9)) });
+      out.consultancy.push({ id: id('con'), lecturer_id: lid, project: `${pick(['Penilaian Keselamatan', 'Semakan Sistem', 'Nasihat Teknikal', 'Audit Keupayaan'])} bagi ${pick(TOPICS)}`, client: pick(CLIENTS), role: pick(['Ketua Projek', 'Perunding', 'Penasihat']), year: int(2020, 2026), status: pick(['Selesai', 'Sedang Berjalan']), description: '', document_id: '', created_at: iso(int(10, 200)), updated_at: iso(int(1, 9)) });
     });
     mk(c.ach ?? int(0, 2)).forEach(() => {
       const [nm, cg] = pick(AWARDS);
       out.achievements.push({ id: id('ach'), lecturer_id: lid, name: nm, category: cg, year: int(2019, 2026), description: '', document_id: '', created_at: iso(int(10, 200)), updated_at: iso(int(1, 9)) });
     });
     if (i === 0 && docs) {
-      [['CV', 'Latest CV 2024', 'CV_DrAisyah.pdf'], ['Portfolio', 'Teaching Portfolio', 'Teaching_Portfolio.pdf'], ['Report', 'Consultancy Report', 'Consultancy_Report.pdf']].forEach(([t, ti, f], k) => out.documents.push({ id: id('doc'), lecturer_id: lid, doc_type: t, title: ti, file_name: f, mime: 'application/pdf', size: 120000 + k * 40000, created_at: iso(60 + k * 30), updated_at: iso(60) }));
+      [['CV', 'CV Terkini 2024', 'CV_DrAisyah.pdf'], ['Portfolio', 'Portfolio Pengajaran', 'Portfolio_Pengajaran.pdf'], ['Laporan', 'Laporan Konsultansi', 'Laporan_Konsultansi.pdf']].forEach(([t, ti, f], k) => out.documents.push({ id: id('doc'), lecturer_id: lid, doc_type: t, title: ti, file_name: f, mime: 'application/pdf', size: 120000 + k * 40000, created_at: iso(60 + k * 30), updated_at: iso(60) }));
     }
   }
   // activity feed, newest first for Aisyah
   const aid = out.lecturers[0].id;
-  [['Added new certification', 57], ['Updated research information', 59], ['Added new publication', 64], ['Updated profile photo', 66]].forEach(([m, d]) => out.activity_log.push({ id: id('act'), lecturer_id: aid, message: m, created_at: iso(d - 50 > 0 ? d - 50 : 1) }));
-  out.lecturers.slice(1, count > 40 ? 40 : 10).forEach((l, k) => out.activity_log.push({ id: id('act'), lecturer_id: l.id, message: pick(['Added new publication', 'Updated expertise information', 'Added new certification']), created_at: iso(k * 0.4 + 0.2) }));
+  [['Menambah pensijilan baharu', 57], ['Mengemas kini maklumat penyelidikan', 59], ['Menambah penerbitan baharu', 64], ['Mengemas kini gambar profil', 66]].forEach(([m, d]) => out.activity_log.push({ id: id('act'), lecturer_id: aid, message: m, created_at: iso(d - 50 > 0 ? d - 50 : 1) }));
+  out.lecturers.slice(1, count > 40 ? 40 : 10).forEach((l, k) => out.activity_log.push({ id: id('act'), lecturer_id: l.id, message: pick(['Menambah penerbitan baharu', 'Mengemas kini maklumat kepakaran', 'Menambah pensijilan baharu']), created_at: iso(k * 0.4 + 0.2) }));
   return out;
 }

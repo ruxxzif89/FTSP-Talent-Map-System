@@ -36,21 +36,21 @@ function match(path) {
 function navFor(role) {
   const ent = (k) => ({ href: '#/' + k, key: k, label: role === 'admin' ? ENTITIES[k].plural : ENTITIES[k].mine, icon: ENTITIES[k].icon });
   if (role === 'admin') return [
-    { href: '#/dashboard', key: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
-    { grp: 'Manage' },
-    { href: '#/users', key: 'users', label: 'Manage Users', icon: 'user' },
-    { href: '#/lecturers', key: 'lecturers', label: 'Lecturers', icon: 'users' },
-    { href: '#/categories', key: 'categories', label: 'Expertise Categories', icon: 'tag' },
-    { href: '#/talent', key: 'talent', label: 'Talent Mapping', icon: 'map' },
-    { grp: 'Records' },
+    { href: '#/dashboard', key: 'dashboard', label: 'Papan Pemuka', icon: 'dashboard' },
+    { grp: 'Pengurusan' },
+    { href: '#/users', key: 'users', label: 'Urus Pengguna', icon: 'user' },
+    { href: '#/lecturers', key: 'lecturers', label: 'Pensyarah', icon: 'users' },
+    { href: '#/categories', key: 'categories', label: 'Kategori Kepakaran', icon: 'tag' },
+    { href: '#/talent', key: 'talent', label: 'Pemetaan Bakat', icon: 'map' },
+    { grp: 'Rekod' },
     ...ENTITY_ORDER.map(ent),
-    { grp: 'Insights' },
-    { href: '#/stats', key: 'stats', label: 'Statistics', icon: 'chart' },
-    { href: '#/reports', key: 'reports', label: 'Reports', icon: 'report' },
+    { grp: 'Analisis' },
+    { href: '#/stats', key: 'stats', label: 'Statistik', icon: 'chart' },
+    { href: '#/reports', key: 'reports', label: 'Laporan', icon: 'report' },
   ];
   return [
-    { href: '#/dashboard', key: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
-    { href: '#/profile', key: 'profile', label: 'My Profile', icon: 'user' },
+    { href: '#/dashboard', key: 'dashboard', label: 'Papan Pemuka', icon: 'dashboard' },
+    { href: '#/profile', key: 'profile', label: 'Profil Saya', icon: 'user' },
     ...ENTITY_ORDER.map(ent),
   ];
 }
@@ -61,13 +61,13 @@ function renderShell() {
   mount(app, html`
     <div class="shell" id="shell">
       <header class="topbar">
-        <button class="icon-btn menu-btn" id="menu" aria-label="Toggle navigation" aria-expanded="false">${icon('menu', 24)}</button>
-        <a class="brand" href="#/dashboard" aria-label="FSTP Talent Map home">${logo(34)}<span>FSTP TALENT MAP<small>UPNM · Faculty of Defence Science &amp; Technology</small></span></a>
+        <button class="icon-btn menu-btn" id="menu" aria-label="Buka/tutup navigasi" aria-expanded="false">${icon('menu', 24)}</button>
+        <a class="brand" href="#/dashboard" aria-label="Laman utama Peta Bakat FSTP">${logo(34)}<span>PETA BAKAT FSTP<small>UPNM · Fakulti Sains dan Teknologi Pertahanan</small></span></a>
         <span class="grow"></span>
-        <div class="rel"><button class="icon-btn" id="bell" aria-label="Notifications" aria-haspopup="true" aria-expanded="false">${icon('bell', 22)}<span class="dot" id="bell-n" hidden></span></button><div id="bell-pop"></div></div>
-        <div class="rel"><button class="user-chip" id="uchip" aria-haspopup="true" aria-expanded="false">${avatar(lec || { full_name: me.full_name }, 34)}<span class="n">${me.role === 'admin' ? 'Admin' : me.full_name}</span>${icon('chevron', 14)}</button><div id="u-pop"></div></div>
+        <div class="rel"><button class="icon-btn" id="bell" aria-label="Notifikasi" aria-haspopup="true" aria-expanded="false">${icon('bell', 22)}<span class="dot" id="bell-n" hidden></span></button><div id="bell-pop"></div></div>
+        <div class="rel"><button class="user-chip" id="uchip" aria-haspopup="true" aria-expanded="false">${avatar(lec || { full_name: me.full_name }, 34)}<span class="n">${me.role === 'admin' ? 'Pentadbir' : me.full_name}</span>${icon('chevron', 14)}</button><div id="u-pop"></div></div>
       </header>
-      <aside class="sidebar" id="sidebar" aria-label="Main navigation"><nav>${nav.map((n) => (n.grp ? html`<div class="grp">${n.grp}</div>` : html`<a class="nav-a" href="${n.href}" data-key="${n.key}">${icon(n.icon, 19)}<span>${n.label}</span><span class="count" data-count="${n.key}" hidden></span></a>`))}</nav></aside>
+      <aside class="sidebar" id="sidebar" aria-label="Navigasi utama"><nav>${nav.map((n) => (n.grp ? html`<div class="grp">${n.grp}</div>` : html`<a class="nav-a" href="${n.href}" data-key="${n.key}">${icon(n.icon, 19)}<span>${n.label}</span><span class="count" data-count="${n.key}" hidden></span></a>`))}</nav></aside>
       <div class="scrim" id="scrim"></div>
       <main id="view" tabindex="-1"></main>
     </div>`);
@@ -115,9 +115,9 @@ function wirePopovers() {
 }
 const bellHtml = () => {
   const { rows, soon } = activityFeed();
-  return html`<div class="pop" role="region" aria-label="Notifications"><h4>Notifications</h4>${soon.map((c) => html`<div class="note">${icon('alert', 18)}<span><b>${c.name}</b> expires ${fmtDate(c.expiry_date)}${store.me.role === 'admin' ? ' · ' + (store.lecturers.find((l) => l.id === c.lecturer_id) || {}).full_name : ''}</span></div>`)}${rows.map((r) => html`<div class="note">${icon('check', 18)}<span>${r.message}<br><small class="faint">${fmtDate(r.created_at)}${store.me.role === 'admin' ? ' · ' + ((store.lecturers.find((l) => l.id === r.lecturer_id) || {}).full_name || '') : ''}</small></span></div>`)}${!rows.length && !soon.length ? html`<div class="note">You're all caught up.</div>` : ''}</div>`;
+  return html`<div class="pop" role="region" aria-label="Notifikasi"><h4>Notifikasi</h4>${soon.map((c) => html`<div class="note">${icon('alert', 18)}<span><b>${c.name}</b> tamat tempoh pada ${fmtDate(c.expiry_date)}${store.me.role === 'admin' ? ' · ' + (store.lecturers.find((l) => l.id === c.lecturer_id) || {}).full_name : ''}</span></div>`)}${rows.map((r) => html`<div class="note">${icon('check', 18)}<span>${r.message}<br><small class="faint">${fmtDate(r.created_at)}${store.me.role === 'admin' ? ' · ' + ((store.lecturers.find((l) => l.id === r.lecturer_id) || {}).full_name || '') : ''}</small></span></div>`)}${!rows.length && !soon.length ? html`<div class="note">Tiada notifikasi baharu.</div>` : ''}</div>`;
 };
-const userHtml = () => html`<div class="pop" role="menu"><h4>${store.me.full_name}</h4><a href="#/account" role="menuitem">${icon('key', 18)} Account &amp; password</a><button class="mi" data-do="theme" role="menuitem">${icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon', 18)} Switch theme</button><button class="mi" data-do="logout" role="menuitem">${icon('out', 18)} Sign out</button></div>`;
+const userHtml = () => html`<div class="pop" role="menu"><h4>${store.me.full_name}</h4><a href="#/account" role="menuitem">${icon('key', 18)} Akaun &amp; kata laluan</a><button class="mi" data-do="theme" role="menuitem">${icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon', 18)} Tukar tema</button><button class="mi" data-do="logout" role="menuitem">${icon('out', 18)} Log keluar</button></div>`;
 
 let revalidating = null;
 async function route() {
@@ -134,12 +134,12 @@ async function route() {
   const m = match(path);
   const view = $('#view');
   if (!m || !m.roles.includes(store.me.role)) {
-    mount(view, html`<div class="empty card">${icon('alert', 36)}<h3>Page not available</h3><p>${m ? 'Your role cannot open this page.' : 'That page does not exist.'}</p><p><a class="btn primary" href="#/dashboard" style="margin-top:14px">Back to dashboard</a></p></div>`);
+    mount(view, html`<div class="empty card">${icon('alert', 36)}<h3>Halaman tidak tersedia</h3><p>${m ? 'Peranan anda tidak dibenarkan membuka halaman ini.' : 'Halaman tersebut tidak wujud.'}</p><p><a class="btn primary" href="#/dashboard" style="margin-top:14px">Kembali ke papan pemuka</a></p></div>`);
     return;
   }
   const base = m.pat.split('/')[0];
   $$('.nav-a').forEach((a) => (a.dataset.key === base ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
-  document.title = 'FSTP Talent Map';
+  document.title = 'Peta Bakat FSTP';
   try {
     const [mod, arg] = m.view.split(':');
     const v = await import(`./views/${mod}.js`);
@@ -153,7 +153,7 @@ async function route() {
     }
   } catch (e) {
     console.error(e);
-    mount(view, html`<div class="empty card">${icon('alert', 36)}<h3>Something went wrong</h3><p>${e.message}</p></div>`);
+    mount(view, html`<div class="empty card">${icon('alert', 36)}<h3>Sesuatu tidak kena</h3><p>${e.message}</p></div>`);
   }
 }
 

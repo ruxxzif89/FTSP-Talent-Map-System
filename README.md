@@ -1,57 +1,63 @@
-# FSTP Talent Map
+# Peta Bakat FSTP
 
-Web-Based Talent Mapping System for FSTP Lecturers (UPNM). Lecturers keep their profile, expertise, research, publications, certifications, training, consultancy, achievements and documents in one place; admins search and map talent, manage accounts and categories, view statistics and export reports.
+Sistem Pemetaan Bakat Berasaskan Web untuk Pensyarah FSTP (Fakulti Sains dan Teknologi Pertahanan, UPNM). Pensyarah menyimpan profil, kepakaran, penyelidikan, penerbitan, pensijilan, latihan, konsultansi, pencapaian dan dokumen di satu tempat; pentadbir mencari dan memetakan bakat, mengurus akaun dan kategori, melihat statistik serta mengeksport laporan.
 
-Plain HTML/CSS/JS (ES modules), Three.js for the 3D views. **No build step.**
+HTML/CSS/JS biasa (modul ES) dengan Three.js untuk paparan 3D. **Tiada langkah binaan (build).**
 
-## Run it
+**Bahasa:** seluruh antara muka, mesej ralat, log aktiviti, data contoh, format tarikh (`ms-MY`) dan dokumentasi ini dalam Bahasa Malaysia.
 
-ES modules need a web server (not `file://`):
+## Cara menjalankan
+
+Modul ES memerlukan pelayan web (bukan `file://`):
 
 ```bash
 python -m http.server 5173
 ```
 
-Open <http://localhost:5173>. Demo accounts (local demo data):
+Buka <http://localhost:5173>. Akaun demo (data demo setempat):
 
-| Role | Username | Password |
+| Peranan | Nama pengguna | Kata laluan |
 |---|---|---|
-| Admin | `admin` | `admin` |
-| Lecturer | `aisyah` (Dr. Aisyah) | `Lecturer@123` |
+| Pentadbir | `admin` | `admin` |
+| Pensyarah | `aisyah` (Dr. Aisyah) | `Lecturer@123` |
 
-## Backends (one switch in `js/config.js`)
+## Bahagian belakang (satu suis dalam `js/config.js`)
 
-| `backend` | Storage | Use for |
+| `backend` | Storan | Kegunaan |
 |---|---|---|
-| `'local'` | Browser `localStorage` + IndexedDB, 26 fictional lecturers | Demo / UI work, zero setup |
-| `'gas'` (default, live) | Google Sheets + Drive via Apps Script (`backend/Code.gs`) | Real shared data for now |
-| *(later)* SQL | MySQL — schema in `docs/schema.sql` | Final system |
+| `'gas'` (lalai, langsung) | Google Sheets + Drive melalui Apps Script (`backend/Code.gs`) | Data bersama yang sebenar buat masa ini |
+| `'local'` | `localStorage` + IndexedDB pelayar, 26 pensyarah fiksyen | Demo / kerja UI, tanpa persediaan |
+| *(kemudian)* SQL | MySQL — skema dalam `docs/schema.sql` | Sistem akhir |
 
-See [`backend/README.md`](backend/README.md) for the Google setup and the migration path to SQL.
+Tambah `?backend=local` pada URL untuk membuka kotak pasir peribadi tanpa menyunting fail. Lihat [`backend/README.md`](backend/README.md) untuk persediaan Google dan laluan migrasi ke SQL.
 
-## Structure
+## Struktur
 
 ```
-index.html            app shell + import map (three.js from CDN)
-css/app.css           design tokens, light/dark theme, responsive layout
-js/schema.js          single source of truth: tables, fields, labels (drives forms, tables, reports)
-js/api.js             the ONLY data gateway the UI uses (swap transports here)
-js/local-server.js    in-browser backend, same rules as Code.gs
-js/seed.js            demo data
-js/views/*            one module per screen (records.js is the generic CRUD for 8 record types)
-js/three/             login network + 3D expertise galaxy
-backend/Code.gs       Apps Script API (Sheets as DB)
-docs/schema.sql       MySQL target schema
+index.html            cangkerang aplikasi + import map (three.js dari CDN)
+css/app.css           token reka bentuk, tema cerah/gelap, reka letak responsif
+js/schema.js          sumber rujukan tunggal: jadual, medan, label (menggerakkan borang, jadual, laporan)
+js/api.js             satu-satunya pintu data yang digunakan UI (tukar pengangkutan di sini)
+js/local-server.js    bahagian belakang dalam pelayar, peraturan sama seperti Code.gs
+js/seed.js            data demo (Bahasa Malaysia)
+js/views/*            satu modul bagi setiap skrin (records.js ialah CRUD generik untuk 8 jenis rekod)
+js/three/             rangkaian log masuk + galaksi kepakaran 3D
+backend/Code.gs       API Apps Script (Sheets sebagai pangkalan data)
+docs/schema.sql       skema sasaran MySQL
 ```
 
-## Roles
+## Peranan
 
-- **Admin** — manage users & categories, all records, Talent Mapping (search + 3D galaxy), Statistics, Reports (CSV / print to PDF).
-- **Lecturer** — own profile and records only. Ownership is enforced server-side (`Code.gs` / `local-server.js`), not just hidden in the UI.
+- **Pentadbir** — urus pengguna & kategori, semua rekod, Pemetaan Bakat (carian + galaksi 3D), Statistik, Laporan (CSV / cetak ke PDF).
+- **Pensyarah** — profil dan rekod sendiri sahaja. Pemilikan dikuatkuasakan di bahagian pelayan (`Code.gs` / `local-server.js`), bukan sekadar disembunyikan dalam UI.
 
-## Security notes
+## Konvensyen bahasa data
 
-- Passwords are salted SHA-256 — fine for the interim; use `password_hash()` (bcrypt/argon2) in the PHP/MySQL version.
-- Sessions are server-issued random tokens (6 h). Uploads: PDF/JPG/PNG/DOC(X), ≤ 5 MB, stored in Drive (never exposed by Drive id).
-- All UI output is HTML-escaped through the `html` template tag; CSV export neutralises formula injection.
-- Change the default `admin` password after first login.
+Nilai yang menggerakkan logik sistem kekal sebagai kod: `role` (`admin` | `lecturer`) dan status akaun (`Active` | `Inactive`); ia diterjemah semasa paparan (Pentadbir/Pensyarah, Aktif/Tidak Aktif). Semua nilai deskriptif yang disimpan (tahap kepakaran, status penyelidikan/penerbitan, jenis, jabatan, jawatan, kategori) ialah Bahasa Malaysia — lihat `js/schema.js`.
+
+## Nota keselamatan
+
+- Kata laluan dicincang SHA-256 dengan garam — memadai buat sementara; gunakan `password_hash()` (bcrypt/argon2) dalam versi PHP/MySQL.
+- Sesi ialah token rawak yang dikeluarkan pelayan (6 jam). Muat naik: PDF/JPG/PNG/DOC(X), ≤ 5 MB, disimpan dalam Drive (ID Drive tidak didedahkan).
+- Semua output UI di-escape HTML melalui tag templat `html`; eksport CSV meneutralkan suntikan formula.
+- Tukar kata laluan `admin` lalai selepas log masuk pertama.

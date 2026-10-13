@@ -8,27 +8,27 @@ import { completion } from './dashboard.js';
 
 const fields = (admin) => ({
   personal: [
-    { name: 'staff_id', label: 'Staff ID', type: 'text', required: true, readonly: !admin },
-    { name: 'full_name', label: 'Full Name', type: 'text', required: true, autocomplete: 'name' },
-    { name: 'email', label: 'Email', type: 'email', required: true, autocomplete: 'email' },
-    { name: 'phone', label: 'Phone Number', type: 'text', autocomplete: 'tel' },
-    { name: 'location', label: 'Location', type: 'text', placeholder: 'e.g. Kuala Lumpur, Malaysia' },
+    { name: 'staff_id', label: 'No. Staf', type: 'text', required: true, readonly: !admin },
+    { name: 'full_name', label: 'Nama Penuh', type: 'text', required: true, autocomplete: 'name' },
+    { name: 'email', label: 'E-mel', type: 'email', required: true, autocomplete: 'email' },
+    { name: 'phone', label: 'Nombor Telefon', type: 'text', autocomplete: 'tel' },
+    { name: 'location', label: 'Lokasi', type: 'text', placeholder: 'cth. Kuala Lumpur, Malaysia' },
   ],
   professional: [
-    { name: 'department', label: 'Department', type: 'select', options: DEPARTMENTS, required: true },
-    { name: 'position', label: 'Position', type: 'select', options: POSITIONS, required: true },
-    { name: 'bio', label: 'Short Biography', type: 'textarea', placeholder: 'Your research focus and background…' },
+    { name: 'department', label: 'Jabatan', type: 'select', options: DEPARTMENTS, required: true },
+    { name: 'position', label: 'Jawatan', type: 'select', options: POSITIONS, required: true },
+    { name: 'bio', label: 'Biodata Ringkas', type: 'textarea', placeholder: 'Fokus penyelidikan dan latar belakang anda…' },
   ],
 });
 
 // Center-crop to a 200px square JPEG so the photo fits comfortably in one sheet cell.
 function toSmallJpeg(file) {
   return new Promise((res, rej) => {
-    if (!/^image\/(jpeg|png)$/.test(file.type)) return rej(new Error('Photo must be a JPG or PNG.'));
-    if (file.size > 2 * 1024 * 1024) return rej(new Error('Photo must be under 2 MB.'));
+    if (!/^image\/(jpeg|png)$/.test(file.type)) return rej(new Error('Gambar mestilah JPG atau PNG.'));
+    if (file.size > 2 * 1024 * 1024) return rej(new Error('Gambar mestilah kurang daripada 2 MB.'));
     const img = new Image(); const url = URL.createObjectURL(file);
     img.onload = () => { const s = Math.min(img.width, img.height), c = document.createElement('canvas'); c.width = c.height = 200; c.getContext('2d').drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 200, 200); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.82)); };
-    img.onerror = () => rej(new Error('Could not read that image.'));
+    img.onerror = () => rej(new Error('Gambar tersebut tidak dapat dibaca.'));
     img.src = url;
   });
 }
@@ -36,11 +36,11 @@ function toSmallJpeg(file) {
 function formBody(l, admin) {
   const F = fields(admin);
   return html`<form class="form" id="pf" novalidate>
-    <div class="photo-edit"><span id="ph">${avatar(l, 112)}</span><label class="btn outline sm" style="cursor:pointer">Change Photo<input type="file" id="photo" accept="image/jpeg,image/png" class="sr"></label><span class="small faint">JPG/PNG (Max 2MB)</span></div>
-    <div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-tab="personal">Personal Information</button><button type="button" role="tab" aria-selected="false" data-tab="professional">Professional Information</button></div>
+    <div class="photo-edit"><span id="ph">${avatar(l, 112)}</span><label class="btn outline sm" style="cursor:pointer">Tukar Gambar<input type="file" id="photo" accept="image/jpeg,image/png" class="sr"></label><span class="small faint">JPG/PNG (Maks. 2MB)</span></div>
+    <div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-tab="personal">Maklumat Peribadi</button><button type="button" role="tab" aria-selected="false" data-tab="professional">Maklumat Profesional</button></div>
     <div data-pane="personal" class="stack">${F.personal.map((f) => fieldHtml(f, l[f.name] ?? ''))}</div>
     <div data-pane="professional" class="stack" hidden>${F.professional.map((f) => fieldHtml(f, l[f.name] ?? ''))}</div>
-    <div class="form-actions"><button type="button" class="btn ghost" data-cancel>Cancel</button><button class="btn primary" id="sv" type="submit">Save Profile</button></div>
+    <div class="form-actions"><button type="button" class="btn ghost" data-cancel>Batal</button><button class="btn primary" id="sv" type="submit">Simpan Profil</button></div>
   </form>`;
 }
 
@@ -57,20 +57,20 @@ function wire(el, l, admin, done) {
     if (!ok) { const bad = $('[aria-invalid=true]', el); const pane = bad && bad.closest('[data-pane]'); $$('[data-pane]', el).forEach((p) => (p.hidden = p !== pane)); $$('[data-tab]', el).forEach((t) => t.setAttribute('aria-selected', pane && t.dataset.tab === pane.dataset.pane)); return; }
     $$('[data-pane]', el).forEach((p) => (p.hidden = p.dataset.pane !== 'personal')); $$('[data-tab]', el).forEach((t) => t.setAttribute('aria-selected', t.dataset.tab === 'personal'));
     const btn = $('#sv', el); busy(btn, true);
-    try { if (!admin) delete values.staff_id; await api.update('lecturers', l.id, { ...values, photo }); toast('Profile saved.'); done(true); }
-    catch (e) { toast(e.message, 'err'); busy(btn, false, 'Save Profile'); }
+    try { if (!admin) delete values.staff_id; await api.update('lecturers', l.id, { ...values, photo }); toast('Profil berjaya disimpan.'); done(true); }
+    catch (e) { toast(e.message, 'err'); busy(btn, false, 'Simpan Profil'); }
   };
 }
 
 export function openProfileEditor(l, onSaved) {
-  openDrawer({ title: 'Edit Profile', body: formBody(l, store.me.role === 'admin'), onMount: (el, close) => wire(el, l, store.me.role === 'admin', (saved) => { close(); if (saved && onSaved) onSaved(); }) });
+  openDrawer({ title: 'Kemas Kini Profil', body: formBody(l, store.me.role === 'admin'), onMount: (el, close) => wire(el, l, store.me.role === 'admin', (saved) => { close(); if (saved && onSaved) onSaved(); }) });
 }
 
 export async function render(root) {
   const l = myLecturer();
   const draw = () => {
     const cur = myLecturer();
-    mount(root, html`${pageHead('My Profile', `Profile completion: ${completion(cur)}%`)}<section class="card" style="max-width:720px">${formBody(cur, false)}</section>`);
+    mount(root, html`${pageHead('Profil Saya', `Kelengkapan profil: ${completion(cur)}%`)}<section class="card" style="max-width:720px">${formBody(cur, false)}</section>`);
     wire(root, cur, false, () => draw());
   };
   draw();
