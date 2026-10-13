@@ -10,7 +10,7 @@ export async function render(root, { entity, lecturer: lecFilter }) {
   const me = myLecturer();
   const state = { lec: '' };
   const rowsFn = () => store[E.table].filter((r) => !state.lec || r.lecturer_id === state.lec);
-  const lecCol = admin ? [{ label: 'Pensyarah', render: (r) => { const l = lecturerOf(r.lecturer_id); return l ? html`<a class="row" style="gap:8px;flex-wrap:nowrap;color:inherit" href="#/lecturer/${l.id}">${avatar(l, 26)}<span>${l.full_name}</span></a>` : '—'; }, sort: (r) => (lecturerOf(r.lecturer_id) || {}).full_name || '' }] : [];
+  const lecCol = admin ? [{ label: 'Pensyarah', render: (r) => { const l = lecturerOf(r.lecturer_id); return l ? html`<a class="row" style="gap:8px;flex-wrap:nowrap;color:inherit;white-space:nowrap" href="#/lecturer/${l.id}">${avatar(l, 26)}<span>${l.full_name}</span></a>` : '—'; }, sort: (r) => (lecturerOf(r.lecturer_id) || {}).full_name || '' }] : [];
   const columns = [...lecCol, ...E.columns];
   const docBtn = (r) => {
     const d = entity === 'documents' ? r : api.docOf(r.document_id);

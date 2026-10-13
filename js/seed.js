@@ -35,7 +35,7 @@ const PT = ['Kajian Semula {a} dalam {t}', 'Ke Arah Rangka Kerja {a} dalam {t}',
 
 // opts: count (lecturers), prefix (id prefix, 'demo_' for remote import), categories (reuse existing rows), includeAdmin, docs
 export async function buildSeed(hashPw, opts = {}) {
-  const { count = 26, prefix = '', categories = null, includeAdmin = true, docs = true } = opts;
+  const { count = 100, prefix = '', categories = null, includeAdmin = true, docs = true } = opts;
   const r = rng(20261013);
   const pick = (a) => a[Math.floor(r() * a.length)];
   const int = (a, b) => a + Math.floor(r() * (b - a + 1));

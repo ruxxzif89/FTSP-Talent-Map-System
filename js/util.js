@@ -101,7 +101,9 @@ export function openDrawer({ title, body, wide = false, onMount }) {
   wrap.innerHTML = `<aside class="drawer ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header><h2></h2><button class="icon-btn" data-x aria-label="Tutup">${icon('x').s}</button></header><div class="drawer-body"></div></aside>`;
   $('h2', wrap).textContent = title; $('.drawer-body', wrap).innerHTML = body.s;
   document.body.append(wrap); document.body.classList.add('noscroll');
-  const close = () => { wrap.classList.add('out'); document.body.classList.remove('noscroll'); setTimeout(() => { wrap.remove(); lastFocus && lastFocus.focus && lastFocus.focus(); }, 200); };
+  const onHash = () => close(); // navigasi (butang Kembali, pautan) menutup panel supaya ia tidak tertinggal di halaman lain
+  const close = () => { removeEventListener('hashchange', onHash); wrap.classList.add('out'); document.body.classList.remove('noscroll'); setTimeout(() => { wrap.remove(); lastFocus && lastFocus.focus && lastFocus.focus(); }, 200); };
+  addEventListener('hashchange', onHash);
   wrap.addEventListener('mousedown', (e) => { if (e.target === wrap) close(); });
   $('[data-x]', wrap).onclick = close; trap(wrap, close);
   requestAnimationFrame(() => { wrap.classList.add('in'); const f = $('input:not([type=hidden]),select,textarea', wrap); f && f.focus(); });

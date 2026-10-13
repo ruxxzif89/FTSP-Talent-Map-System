@@ -26,7 +26,7 @@ Buka <http://localhost:5173>. Akaun demo (data demo setempat):
 | `backend` | Storan | Kegunaan |
 |---|---|---|
 | `'gas'` (lalai, langsung) | Google Sheets + Drive melalui Apps Script (`backend/Code.gs`) | Data bersama yang sebenar buat masa ini |
-| `'local'` | `localStorage` + IndexedDB pelayar, 26 pensyarah fiksyen | Demo / kerja UI, tanpa persediaan |
+| `'local'` | `localStorage` + IndexedDB pelayar, 100 pensyarah fiksyen | Demo / kerja UI, tanpa persediaan |
 | *(kemudian)* SQL | MySQL — skema dalam `docs/schema.sql` | Sistem akhir |
 
 Tambah `?backend=local` pada URL untuk membuka kotak pasir peribadi tanpa menyunting fail. Lihat [`backend/README.md`](backend/README.md) untuk persediaan Google dan laluan migrasi ke SQL.
