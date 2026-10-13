@@ -7,7 +7,7 @@ Your spreadsheet: `1LFZkj30JrlinLjcabWfZ-yEcO08EVwcDt2MPR0prRF0` (hard-coded as 
 1. Open the spreadsheet → **Extensions → Apps Script** (this must be the script behind your `/exec` URL).
 2. Replace the contents of `Code.gs` with [`Code.gs`](Code.gs) from this folder. Save.
 3. In the function dropdown pick **`setup`** → **Run**. Approve the permission prompts (Sheets, Drive, external-request not needed).
-   This creates all 12 tabs with headers (`users`, `lecturers`, `expertise_categories`, `expertise`, `research`, `publications`, `certifications`, `training`, `consultancy`, `achievements`, `documents`, `activity_log`), seeds 12 expertise categories and the first admin (`admin` / `Admin@123`), and creates a Drive folder `FSTP_Talent_Map_Files` for uploads.
+   This creates all 12 tabs with headers (`users`, `lecturers`, `expertise_categories`, `expertise`, `research`, `publications`, `certifications`, `training`, `consultancy`, `achievements`, `documents`, `activity_log`), seeds 12 expertise categories and the first admin (`admin` / `admin`), and creates a Drive folder `FSTP_Talent_Map_Files` for uploads.
 4. **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy.** Execute as **Me**, access **Anyone**. The URL stays the same.
 5. Check it: open the `/exec` URL in a browser — you should see `{"ok":true,"data":{"service":"FSTP Talent Map API",...}}`.
 6. In `js/config.js` set `backend: 'gas'` (the URL is already filled in) and sign in as `admin`.

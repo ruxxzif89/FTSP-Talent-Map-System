@@ -41,7 +41,7 @@ export async function buildSeed(hashPw) {
 
   // admin
   const adminSalt = 's_admin';
-  out.users.push({ id: 'usr_admin', username: 'admin', email: 'admin@fstp.upnm.edu.my', full_name: 'Faculty Administrator', role: 'admin', department: 'Faculty Office', status: 'Active', salt: adminSalt, password_hash: await hashPw(adminSalt, 'Admin@123'), last_login: '', created_at: iso(300), updated_at: iso(300) });
+  out.users.push({ id: 'usr_admin', username: 'admin', email: 'admin@fstp.upnm.edu.my', full_name: 'Faculty Administrator', role: 'admin', department: 'Faculty Office', status: 'Active', salt: adminSalt, password_hash: await hashPw(adminSalt, 'admin'), last_login: '', created_at: iso(300), updated_at: iso(300) });
 
   const specs = [
     { name: 'Dr. Aisyah Binti Ahmad', user: 'aisyah', dept: 'Computer Science', pos: 'Senior Lecturer', female: true, main: ['Cybersecurity', 'Expert', 8], extra: [['Digital Forensics', 'Advanced', 6], ['Networking', 'Intermediate', 4], ['Artificial Intelligence', 'Intermediate', 3], ['Database', 'Beginner', 2]], counts: { research: 8, pubs: 15, certs: 6, train: 10, cons: 4, ach: 5 } },

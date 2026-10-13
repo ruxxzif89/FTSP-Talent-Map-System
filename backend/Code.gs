@@ -62,10 +62,10 @@ function setup() {
   }
   if (!rows_('users').length) {
     var salt = uid_('s');
-    insert_('users', { id: 'usr_admin', username: 'admin', email: 'admin@fstp.upnm.edu.my', full_name: 'Faculty Administrator', role: 'admin', department: 'Faculty Office', status: 'Active', salt: salt, password_hash: hash_(salt, 'Admin@123'), last_login: '', created_at: now_(), updated_at: now_() });
+    insert_('users', { id: 'usr_admin', username: 'admin', email: 'admin@fstp.upnm.edu.my', full_name: 'Faculty Administrator', role: 'admin', department: 'Faculty Office', status: 'Active', salt: salt, password_hash: hash_(salt, 'admin'), last_login: '', created_at: now_(), updated_at: now_() });
   }
   folder_();                                              // creates the Drive folder for uploads
-  Logger.log('Setup complete. Sign in as admin / Admin@123 and change the password immediately.');
+  Logger.log('Setup complete. Sign in as admin / admin and change the password immediately.');
 }
 
 /** Wipes ALL data rows (keeps headers). Run by hand only. */

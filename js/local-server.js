@@ -38,10 +38,10 @@ async function blobOp(mode, fn) {
 class HttpError extends Error { constructor(msg, code = 400) { super(msg); this.code = code; } }
 
 async function ensureSeed() {
-  if (localStorage.getItem('ftm:seeded') === '2') return;
+  if (localStorage.getItem('ftm:seeded') === '3') return;
   const seed = await buildSeed(hashPw);
   TABLES.forEach((t) => write(t, seed[t] || []));
-  localStorage.setItem('ftm:seeded', '2');
+  localStorage.setItem('ftm:seeded', '3');
 }
 
 function session(token) {

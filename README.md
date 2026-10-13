@@ -16,7 +16,7 @@ Open <http://localhost:5173>. Demo accounts (local demo data):
 
 | Role | Username | Password |
 |---|---|---|
-| Admin | `admin` | `Admin@123` |
+| Admin | `admin` | `admin` |
 | Lecturer | `aisyah` (Dr. Aisyah) | `Lecturer@123` |
 
 ## Backends (one switch in `js/config.js`)

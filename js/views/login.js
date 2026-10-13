@@ -1,5 +1,6 @@
 import * as api from '../api.js';
 import { html, mount, $, icon, logo } from '../util.js';
+import { CONFIG } from '../config.js';
 
 export async function render(root) {
   mount(root, html`
@@ -19,8 +20,9 @@ export async function render(root) {
           <div class="fld"><label for="p">Password</label><div class="pw"><input class="input" id="p" name="password" type="password" autocomplete="current-password" required><button type="button" class="icon-btn eye" id="eye" aria-label="Show password" aria-pressed="false" style="color:var(--ink-3)">${icon('eye', 20)}</button></div></div>
           <div class="checks"><label><input type="checkbox" id="rem" checked> Remember me</label></div>
           <button class="btn primary" id="go" type="submit" style="width:100%">Login</button>
-          <div class="demo"><b>Demo accounts</b> (local demo data)<br>
-            <button type="button" data-fill="admin|Admin@123">Admin</button> · <button type="button" data-fill="aisyah|Lecturer@123">Lecturer (Dr. Aisyah)</button></div>
+          ${CONFIG.backend === 'local' ? html`<div class="demo"><b>Demo accounts</b> (local demo data)<br>
+            <button type="button" data-fill="admin|admin">Admin</button> · <button type="button" data-fill="aisyah|Lecturer@123">Lecturer (Dr. Aisyah)</button></div>` : ''}
+
         </form>
       </section>
     </div>`);
