@@ -63,7 +63,7 @@ const P = {
 };
 export const icon = (name, size = 20, cls = '') => raw(`<svg class="ic ${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] || ''}</svg>`);
 
-export const logo = (size = 36) => raw(`<svg width="${size}" height="${size}" viewBox="0 0 48 52" aria-hidden="true"><path d="M24 2 5 8v17c0 12 8 21 19 25 11-4 19-13 19-25V8z" fill="#0b2a5b" stroke="#f2b705" stroke-width="2.500"/><path d="M24 9 11 13v11c0 8 5 14 13 17 8-3 13-9 13-17V13z" fill="none" stroke="#f2b705" stroke-width="1.200" opacity=".7"/><text x="24" y="31" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif" font-weight="800" font-size="12" fill="#f2b705">FSTP</text></svg>`);
+export const logo = (size = 36) => raw(`<svg width="${size}" height="${size}" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="#f2b705" stroke-width="2.600" stroke-linecap="round" stroke-linejoin="round"><path d="M44 18 24 8 4 18l20 10z"/><path d="M12 23v9c0 3 5.500 6 12 6s12-3 12-6v-9"/><path d="M44 18v12"/></svg>`);
 
 // ---- formatting ----
 export const fmtDate = (d) => { if (!d) return '—'; const x = new Date(d); return isNaN(x) ? esc(d) : x.toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric' }); };

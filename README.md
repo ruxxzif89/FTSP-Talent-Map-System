@@ -1,4 +1,4 @@
-# Peta Bakat FSTP
+# TalentPro (Talent Profiling & Career Progression System) - FSTP UPNM
 
 Sistem Pemetaan Bakat Berasaskan Web untuk Pensyarah FSTP (Fakulti Sains dan Teknologi Pertahanan, UPNM). Pensyarah menyimpan profil, kepakaran, penyelidikan, penerbitan, pensijilan, latihan, konsultansi, pencapaian dan dokumen di satu tempat; pentadbir mencari dan memetakan bakat, mengurus akaun dan kategori, melihat statistik serta mengeksport laporan.
 

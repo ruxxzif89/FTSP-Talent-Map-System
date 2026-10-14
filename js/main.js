@@ -82,7 +82,7 @@ function renderShell() {
     <div class="shell" id="shell">
       <header class="topbar">
         <button class="icon-btn menu-btn" id="menu" aria-label="Buka/tutup navigasi" aria-expanded="false">${icon('menu', 24)}</button>
-        <a class="brand" href="#/dashboard" aria-label="Laman utama Peta Bakat FSTP">${logo(34)}<span>PETA BAKAT FSTP<small>UPNM · Fakulti Sains dan Teknologi Pertahanan</small></span></a>
+        <a class="brand" href="#/dashboard" aria-label="Laman utama TalentPro">${logo(34)}<span>TalentPro<small>Talent Profiling &amp; Career Progression System</small></span></a>
         <span class="grow"></span>
         <button class="help-top" id="phelp" aria-label="Bantuan untuk halaman ini" title="Apa yang boleh saya lakukan di halaman ini?"><span class="q">?</span><span class="t">Bantuan</span></button>
         <div class="rel"><button class="icon-btn" id="bell" aria-label="Notifikasi" aria-haspopup="true" aria-expanded="false">${icon('bell', 22)}<span class="dot" id="bell-n" hidden></span></button><div id="bell-pop"></div></div>
@@ -173,7 +173,7 @@ async function route() {
   }
   const base = m.pat.split('/')[0];
   $$('.nav-a').forEach((a) => (a.dataset.key === base ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
-  document.title = 'Peta Bakat FSTP';
+  document.title = 'TalentPro';
   try {
     const [mod, arg] = m.view.split(':');
     const v = await import(`./views/${mod}.js`);
