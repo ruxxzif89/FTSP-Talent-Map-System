@@ -1,6 +1,6 @@
 // The only module the UI uses to reach data. Swap transports here (local -> Apps Script -> SQL/REST).
 import { CONFIG } from './config.js';
-import { ENTITIES } from './schema.js';
+import { ENTITIES, TABLES } from './schema.js';
 
 const TOKEN_KEY = 'ftm:token';
 let token = sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || '';
@@ -47,7 +47,7 @@ export async function logout() { try { if (token) await call('logout'); } catch 
 
 // Session cache: lets a refresh paint instantly from the last snapshot while fresh data loads in the background.
 const SNAP_KEY = 'ftm:snap';
-const DATA_KEYS = ['users', 'lecturers', 'expertise_categories', 'expertise', 'research', 'publications', 'certifications', 'training', 'consultancy', 'achievements', 'documents', 'activity_log'];
+const DATA_KEYS = TABLES;
 const dataOnly = () => Object.fromEntries(DATA_KEYS.map((k) => [k, store[k] || []]));
 export function saveSnap() { try { if (store.me && store.loaded) sessionStorage.setItem(SNAP_KEY, JSON.stringify({ me: store.me, snap: dataOnly() })); } catch { /* quota / private mode: just skip caching */ } }
 const readSnap = () => { try { return JSON.parse(sessionStorage.getItem(SNAP_KEY)); } catch { return null; } };
@@ -60,24 +60,26 @@ export async function restore() {
   const fetchFresh = () => Promise.all([call('me'), call('snapshot')]); // parallel: one round trip instead of two
   try {
     if (cached && cached.me) {
-      Object.assign(store, cached.snap, { me: cached.me, loaded: true });
-      const revalidate = fetchFresh().then(([m, snap]) => { const changed = JSON.stringify(snap) !== JSON.stringify(cached.snap); store.me = m.user; Object.assign(store, snap, { loaded: true }); saveSnap(); return changed; }).catch(() => false);
+      Object.assign(store, cached.snap, { me: cached.me, loaded: true }); fill();
+      const revalidate = fetchFresh().then(([m, snap]) => { const changed = JSON.stringify(snap) !== JSON.stringify(cached.snap); store.me = m.user; Object.assign(store, snap, { loaded: true }); fill(); saveSnap(); return changed; }).catch(() => false);
       return { user: cached.me, revalidate };
     }
     const [m, snap] = await fetchFresh();
-    store.me = m.user; Object.assign(store, snap, { loaded: true }); saveSnap(); emit();
+    store.me = m.user; Object.assign(store, snap, { loaded: true }); fill(); saveSnap(); emit();
     return { user: m.user, revalidate: Promise.resolve(false) };
   } catch { clearSession(); return null; }
 }
 
 export async function load() {
   const snap = await call('snapshot');
-  Object.assign(store, snap, { loaded: true });
+  Object.assign(store, snap, { loaded: true }); fill();
   saveSnap();
   emit();
 }
 
 const SING = Object.fromEntries(Object.entries(ENTITIES).map(([k, e]) => [k, e.singular.toLowerCase()]));
+SING.promotion_assessors = 'penilai luar';
+const fill = () => TABLES.forEach((t) => { if (!Array.isArray(store[t])) store[t] = []; });
 const patchStore = (table, row) => { const list = store[table]; const i = list.findIndex((r) => r.id === row.id); if (i >= 0) list[i] = row; else list.push(row); };
 
 export async function create(table, row) { const r = await call('create', { table, row }); patchStore(table, r); note(r.lecturer_id, 'Menambah ' + SING[table] + ' baharu'); emit(); return r; }
@@ -96,6 +98,12 @@ export const resetPassword = (id, password) => call('resetPassword', { id, passw
 export const changePassword = (current, password) => call('changePassword', { current, password });
 export const deleteUser = async (id) => { await call('deleteUser', { id }); await load(); };
 export const resetDemo = () => call('resetDemo');
+// ---- kenaikan pangkat ----
+export async function promoSave(data) { const r = await call('promoSave', data); patchStore('promotion_applications', r); emit(); return r; }
+export async function promoSubmit(id, ack) { const r = await call('promoSubmit', { id, ack }); await load(); return r; }
+export async function promoAct(id, payload) { const r = await call('promoAct', { id, ...payload }); await load(); return r; }
+export async function promoAppeal(id, reason) { const r = await call('promoAppeal', { id, reason }); await load(); return r; }
+export async function promoRemove(id) { await call('promoRemove', { id }); store.promotion_applications = store.promotion_applications.filter((a) => a.id !== id); store.promotion_events = store.promotion_events.filter((e) => e.application_id !== id); emit(); }
 export const bulkImport = async (tables) => { const r = await call('bulkImport', { tables }); await load(); return r; };
 export const clearDemo = async () => { const r = await call('clearDemo'); await load(); return r; };
 

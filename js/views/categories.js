@@ -5,7 +5,7 @@ import { fieldHtml, readForm, busy, dataTable, pageHead, searchBox, debounce } f
 
 const F = [
   { name: 'name', label: 'Nama Kategori', type: 'text', required: true },
-  { name: 'color', label: 'Warna (hex)', type: 'text', required: true, placeholder: '#1d5fd1' },
+  { name: 'color', label: 'Warna (hex)', type: 'text', required: true, placeholder: '#1d5fd1', help: 'cat_color' },
   { name: 'description', label: 'Penerangan', type: 'textarea' },
 ];
 const used = (c) => new Set(store.expertise.filter((e) => e.category_id === c.id).map((e) => e.lecturer_id)).size;

@@ -1,4 +1,5 @@
 // Talent Mapping: search/filter lecturers by expertise, with a card view and a 3D "expertise galaxy".
+import { helpBtn } from '../help.js';
 import { store, categoryOf } from '../api.js';
 import { html, mount, $, $$, icon, avatar, levelClass, levelRank, esc } from '../util.js';
 import { DEPARTMENTS, LEVELS } from '../schema.js';
@@ -24,7 +25,7 @@ export function searchTalent({ q = '', dept = '', level = '', cat = '' }) {
 export async function render(root, { cat: catParam }) {
   const st = { q: '', dept: '', level: '', cat: catParam || '', sort: 'relevance', view: 'cards' };
   const cats = store.expertise_categories;
-  mount(root, html`${pageHead('Pemetaan Bakat', 'Cari dan temui pensyarah berdasarkan kepakaran, jabatan atau bidang penyelidikan.', html`<div class="seg" role="group" aria-label="Paparan"><button data-view="cards" aria-pressed="true">${icon('grid', 16)} Kad</button><button data-view="3d" aria-pressed="false">${icon('cube', 16)} Galaksi 3D</button></div>`)}
+  mount(root, html`${pageHead('Pemetaan Bakat', 'Cari dan temui pensyarah berdasarkan kepakaran, jabatan atau bidang penyelidikan.', html`<div class="seg" role="group" aria-label="Paparan"><button data-view="cards" aria-pressed="true">${icon('grid', 16)} Kad</button><button data-view="3d" aria-pressed="false">${icon('cube', 16)} Galaksi 3D</button></div>${helpBtn('btn_view_toggle')}`)}
     <div class="card" style="margin-bottom:18px"><div class="toolbar" style="margin:0"><div class="search">${icon('search', 18)}<input class="input" id="q" type="search" placeholder="Cari nama pensyarah, kepakaran atau topik penyelidikan…" aria-label="Cari bakat"></div>
       <select class="input" id="d" style="max-width:220px" aria-label="Jabatan"><option value="">Semua Jabatan</option>${DEPARTMENTS.map((d) => html`<option>${d}</option>`)}</select>
       <select class="input" id="lv" style="max-width:200px" aria-label="Tahap kepakaran"><option value="">Semua Tahap Kepakaran</option>${LEVELS.map((d) => html`<option>${d}</option>`)}</select></div></div>

@@ -42,11 +42,17 @@ js/schema.js          sumber rujukan tunggal: jadual, medan, label (menggerakkan
 js/api.js             satu-satunya pintu data yang digunakan UI (tukar pengangkutan di sini)
 js/local-server.js    bahagian belakang dalam pelayar, peraturan sama seperti Code.gs
 js/seed.js            data demo (Bahasa Malaysia)
-js/views/*            satu modul bagi setiap skrin (records.js ialah CRUD generik untuk 8 jenis rekod)
+js/views/*            satu modul bagi setiap skrin (records.js ialah CRUD generik untuk jenis rekod)
+js/promotion/*        Garis Panduan sebagai data + enjin kelayakan + aliran kerja (tulen, boleh diuji)
+js/help.js            daftar bantuan "?"
 js/three/             rangkaian log masuk + galaksi kepakaran 3D
 backend/Code.gs       API Apps Script (Sheets sebagai pangkalan data)
 docs/schema.sql       skema sasaran MySQL
 ```
+
+## Modul Kenaikan Pangkat
+
+Melaksanakan Garis Panduan Kenaikan Pangkat Staf Akademik UPNM (Edisi 2025): semakan kesediaan automatik, permohonan, aliran kerja jawatankuasa, Penilai Luar, rayuan, borang bercetak, panduan, dan **demo berpandu** (`#/demo-kp`). Setiap istilah rumit ada butang **?**. Lihat [docs/KENAIKAN-PANGKAT.md](docs/KENAIKAN-PANGKAT.md). Ujian enjin: `node tools/test-engine.mjs`.
 
 ## Peranan
 

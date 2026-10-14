@@ -1,7 +1,9 @@
 import * as api from './api.js';
 import { store, onChange, myLecturer } from './api.js';
 import { html, mount, $, $$, icon, logo, avatar, fmtDate } from './util.js';
-import { ENTITIES, ENTITY_ORDER } from './schema.js';
+import { ENTITIES, ENTITY_ORDER, ADMIN_ENTITY_ORDER } from './schema.js';
+import { wireHelp, openPageHelp } from './help.js';
+import { ACTIVE_STATUSES } from './promotion/workflow.js';
 
 const app = $('#app');
 let cleanup = null;
@@ -19,6 +21,14 @@ const ROUTES = [
   ['stats', 'stats', ['admin']],
   ['reports', 'reports', ['admin']],
   ['account', 'account', ['admin', 'lecturer']],
+  ['kp', 'kp', ['lecturer']],
+  ['kp/mohon', 'kpMohon', ['lecturer']],
+  ['kp/:id', 'kpStatus', ['lecturer']],
+  ['kp-admin', 'kpAdmin', ['admin']],
+  ['kp-admin/:id', 'kpDetail', ['admin']],
+  ['panduan', 'panduan', ['admin', 'lecturer']],
+  ['demo-kp', 'demoKp', ['admin', 'lecturer']],
+  ...ADMIN_ENTITY_ORDER.map((e) => [e, 'records:' + e, ['admin']]),
   ...ENTITY_ORDER.map((e) => [e, 'records:' + e, ['admin', 'lecturer']]),
 ];
 
@@ -42,8 +52,13 @@ function navFor(role) {
     { href: '#/lecturers', key: 'lecturers', label: 'Pensyarah', icon: 'users' },
     { href: '#/categories', key: 'categories', label: 'Kategori Kepakaran', icon: 'tag' },
     { href: '#/talent', key: 'talent', label: 'Pemetaan Bakat', icon: 'map' },
+    { grp: 'Kenaikan Pangkat' },
+    { href: '#/kp-admin', key: 'kp-admin', label: 'Papan Kerja', icon: 'target' },
+    { href: '#/panduan', key: 'panduan', label: 'Panduan', icon: 'book' },
+    { href: '#/demo-kp', key: 'demo-kp', label: 'Demo Berpandu', icon: 'star' },
     { grp: 'Rekod' },
     ...ENTITY_ORDER.map(ent),
+    ...ADMIN_ENTITY_ORDER.map(ent),
     { grp: 'Analisis' },
     { href: '#/stats', key: 'stats', label: 'Statistik', icon: 'chart' },
     { href: '#/reports', key: 'reports', label: 'Laporan', icon: 'report' },
@@ -51,6 +66,11 @@ function navFor(role) {
   return [
     { href: '#/dashboard', key: 'dashboard', label: 'Papan Pemuka', icon: 'dashboard' },
     { href: '#/profile', key: 'profile', label: 'Profil Saya', icon: 'user' },
+    { grp: 'Kenaikan Pangkat' },
+    { href: '#/kp', key: 'kp', label: 'Kenaikan Pangkat Saya', icon: 'target' },
+    { href: '#/panduan', key: 'panduan', label: 'Panduan', icon: 'book' },
+    { href: '#/demo-kp', key: 'demo-kp', label: 'Demo Berpandu', icon: 'star' },
+    { grp: 'Rekod Saya' },
     ...ENTITY_ORDER.map(ent),
   ];
 }
@@ -64,6 +84,7 @@ function renderShell() {
         <button class="icon-btn menu-btn" id="menu" aria-label="Buka/tutup navigasi" aria-expanded="false">${icon('menu', 24)}</button>
         <a class="brand" href="#/dashboard" aria-label="Laman utama Peta Bakat FSTP">${logo(34)}<span>PETA BAKAT FSTP<small>UPNM · Fakulti Sains dan Teknologi Pertahanan</small></span></a>
         <span class="grow"></span>
+        <button class="help-top" id="phelp" aria-label="Bantuan untuk halaman ini" title="Apa yang boleh saya lakukan di halaman ini?"><span class="q">?</span><span class="t">Bantuan</span></button>
         <div class="rel"><button class="icon-btn" id="bell" aria-label="Notifikasi" aria-haspopup="true" aria-expanded="false">${icon('bell', 22)}<span class="dot" id="bell-n" hidden></span></button><div id="bell-pop"></div></div>
         <div class="rel"><button class="user-chip" id="uchip" aria-haspopup="true" aria-expanded="false">${avatar(lec || { full_name: me.full_name }, 34)}<span class="n">${me.role === 'admin' ? 'Pentadbir' : me.full_name}</span>${icon('chevron', 14)}</button><div id="u-pop"></div></div>
       </header>
@@ -73,6 +94,7 @@ function renderShell() {
     </div>`);
   shellEl = $('#shell');
   const setOpen = (v) => { shellEl.classList.toggle('open', v); $('#menu').setAttribute('aria-expanded', v); };
+  $('#phelp').onclick = () => openPageHelp(pageKey());
   $('#menu').onclick = () => setOpen(!shellEl.classList.contains('open'));
   $('#scrim').onclick = () => setOpen(false);
   $('#sidebar').addEventListener('click', (e) => { if (e.target.closest('a')) setOpen(false); });
@@ -91,6 +113,8 @@ function updateChrome() {
   const dot = $('#bell-n'); dot.hidden = !soon.length; dot.textContent = soon.length;
   const counts = { lecturers: store.lecturers.length, users: store.users.length, categories: store.expertise_categories.length };
   ENTITY_ORDER.forEach((k) => (counts[k] = store[k].length));
+  ADMIN_ENTITY_ORDER.forEach((k) => (counts[k] = store[k].length));
+  counts['kp-admin'] = store.promotion_applications.filter((a) => ACTIVE_STATUSES.includes(a.status) && a.status !== 'draf').length || null;
   $$('[data-count]').forEach((el) => { const n = counts[el.dataset.count]; el.textContent = n ?? ''; el.hidden = n == null; });
 }
 
@@ -119,6 +143,15 @@ const bellHtml = () => {
 };
 const userHtml = () => html`<div class="pop" role="menu"><h4>${store.me.full_name}</h4><a href="#/account" role="menuitem">${icon('key', 18)} Akaun &amp; kata laluan</a><button class="mi" data-do="theme" role="menuitem">${icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon', 18)} Tukar tema</button><button class="mi" data-do="logout" role="menuitem">${icon('out', 18)} Log keluar</button></div>`;
 
+let curPath = '';
+function pageKey() {
+  const p = curPath, admin = store.me && store.me.role === 'admin';
+  if (p === 'dashboard') return admin ? 'dashboard_admin' : 'dashboard_lecturer';
+  if (p === 'kp') return 'kp'; if (p === 'kp/mohon') return 'kp_mohon'; if (p.startsWith('kp-admin/')) return 'kp_detail'; if (p.startsWith('kp/')) return 'kp';
+  if (p === 'kp-admin') return 'kp_admin'; if (p === 'panduan') return 'panduan'; if (p === 'demo-kp') return 'demo_kp';
+  if (p.startsWith('lecturer/')) return 'lecturers';
+  return ['profile', 'lecturers', 'talent', 'users', 'categories', 'stats', 'reports', 'account', 'lppt_scores', 'disciplinary'].includes(p) ? p : 'records';
+}
 let revalidating = null;
 async function route() {
   if (cleanup) { try { cleanup(); } catch { /* noop */ } cleanup = null; }
@@ -131,6 +164,7 @@ async function route() {
   if (!store.me) { return renderLogin(); }
   if (path === 'login' || path === '') { location.hash = '#/dashboard'; return; }
   if (!shellEl || !document.body.contains(shellEl)) renderShell();
+  curPath = path;
   const m = match(path);
   const view = $('#view');
   if (!m || !m.roles.includes(store.me.role)) {
@@ -163,6 +197,7 @@ async function renderLogin() {
   cleanup = await v.render(app);
 }
 
+wireHelp();
 onChange(updateChrome);
 window.addEventListener('hashchange', route);
 route();

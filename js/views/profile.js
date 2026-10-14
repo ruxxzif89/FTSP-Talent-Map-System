@@ -2,8 +2,9 @@
 import * as api from '../api.js';
 import { store, myLecturer } from '../api.js';
 import { html, mount, $, $$, avatar, toast, openDrawer, raw } from '../util.js';
-import { DEPARTMENTS, POSITIONS } from '../schema.js';
+import { DEPARTMENTS, POSITIONS, GRADE_OPTIONS, FIELDS } from '../schema.js';
 import { fieldHtml, readForm, busy, pageHead } from './_ui.js';
+import { helpBtn } from '../help.js';
 import { completion } from './dashboard.js';
 
 const fields = (admin) => ({
@@ -17,7 +18,21 @@ const fields = (admin) => ({
   professional: [
     { name: 'department', label: 'Jabatan', type: 'select', options: DEPARTMENTS, required: true },
     { name: 'position', label: 'Jawatan', type: 'select', options: POSITIONS, required: true },
+    { name: 'scopus_h_index', label: 'H-indeks SCOPUS (untuk kenaikan pangkat)', type: 'number', min: 0, max: 200, help: 'f_hindex' },
     { name: 'bio', label: 'Biodata Ringkas', type: 'textarea', placeholder: 'Fokus penyelidikan dan latar belakang anda…' },
+  ],
+  service: [
+    { name: 'grade', label: 'Gred semasa', type: 'select', options: GRADE_OPTIONS, help: 'f_grade' },
+    { name: 'grade_since', label: 'Tarikh masuk gred semasa', type: 'date', help: 'f_grade_since' },
+    { name: 'appointed_on', label: 'Tarikh dilantik di UPNM', type: 'date', help: 'f_appointed' },
+    { name: 'confirmed_on', label: 'Tarikh disahkan dalam perkhidmatan', type: 'date', help: 'f_confirmed' },
+    { name: 'vk7_since', label: 'Tarikh masuk Gred VK7 (jika berkaitan)', type: 'date', help: 'f_vk7' },
+    { name: 'field', label: 'Bidang', type: 'select', options: FIELDS, help: 'f_field' },
+    { name: 'has_phd', label: 'Memiliki PhD?', type: 'select', options: ['Ya', 'Tidak'], help: 'f_phd' },
+    { name: 'has_prof_qual', label: 'Kelayakan profesional (cth. Ir.)?', type: 'select', options: ['Ya', 'Tidak'], help: 'f_profq' },
+    { name: 'employment', label: 'Jenis lantikan', type: 'select', options: ['Tetap', 'Kontrak', 'Pinjaman'], help: 'f_employment' },
+    { name: 'syarahan_perdana', label: 'Syarahan Perdana disampaikan?', type: 'select', options: ['Ya', 'Tidak'], help: 'f_syarahan' },
+    { name: 'monograf', label: 'Monograf dihasilkan?', type: 'select', options: ['Ya', 'Tidak'], help: 'f_monograf' },
   ],
 });
 
@@ -36,10 +51,11 @@ function toSmallJpeg(file) {
 function formBody(l, admin) {
   const F = fields(admin);
   return html`<form class="form" id="pf" novalidate>
-    <div class="photo-edit"><span id="ph">${avatar(l, 112)}</span><label class="btn outline sm" style="cursor:pointer">Tukar Gambar<input type="file" id="photo" accept="image/jpeg,image/png" class="sr"></label><span class="small faint">JPG/PNG (Maks. 2MB)</span></div>
-    <div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-tab="personal">Maklumat Peribadi</button><button type="button" role="tab" aria-selected="false" data-tab="professional">Maklumat Profesional</button></div>
+    <div class="photo-edit"><span id="ph">${avatar(l, 112)}</span><label class="btn outline sm" style="cursor:pointer">Tukar Gambar<input type="file" id="photo" accept="image/jpeg,image/png" class="sr"></label><span class="small faint">JPG/PNG (Maks. 2MB)</span>${helpBtn('profile_photo')}</div>
+    <div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-tab="personal">Maklumat Peribadi</button><button type="button" role="tab" aria-selected="false" data-tab="professional">Maklumat Profesional</button>${admin ? html`<button type="button" role="tab" aria-selected="false" data-tab="service">Maklumat Perkhidmatan</button>` : ''}</div>
     <div data-pane="personal" class="stack">${F.personal.map((f) => fieldHtml(f, l[f.name] ?? ''))}</div>
     <div data-pane="professional" class="stack" hidden>${F.professional.map((f) => fieldHtml(f, l[f.name] ?? ''))}</div>
+    ${admin ? html`<div data-pane="service" class="stack" hidden><p class="small muted">Data Pejabat Pendaftar yang digunakan oleh semakan Kenaikan Pangkat. Hanya Pentadbir boleh mengubahnya.</p>${F.service.map((f) => fieldHtml(f, l[f.name] ?? ''))}</div>` : ''}
     <div class="form-actions"><button type="button" class="btn ghost" data-cancel>Batal</button><button class="btn primary" id="sv" type="submit">Simpan Profil</button></div>
   </form>`;
 }
@@ -51,7 +67,7 @@ function wire(el, l, admin, done) {
   $('[data-cancel]', el).onclick = () => done(false);
   $('#pf', el).onsubmit = async (ev) => {
     ev.preventDefault();
-    const all = [...F.personal, ...F.professional];
+    const all = [...F.personal, ...F.professional, ...(admin ? F.service : [])];
     $$('[data-pane]', el).forEach((p) => (p.hidden = false)); // so validation can focus any field
     const { values, ok } = readForm(ev.target, all);
     if (!ok) { const bad = $('[aria-invalid=true]', el); const pane = bad && bad.closest('[data-pane]'); $$('[data-pane]', el).forEach((p) => (p.hidden = p !== pane)); $$('[data-tab]', el).forEach((t) => t.setAttribute('aria-selected', pane && t.dataset.tab === pane.dataset.pane)); return; }

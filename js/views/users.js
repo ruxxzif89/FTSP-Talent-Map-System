@@ -23,7 +23,7 @@ export async function render(root) {
   const userForm = (u) => {
     const F = [
       { name: 'full_name', label: 'Nama Penuh', type: 'text', required: true }, { name: 'username', label: 'Nama Pengguna', type: 'text', required: true, readonly: !!u, autocomplete: 'off' },
-      { name: 'email', label: 'E-mel', type: 'email', required: true }, { name: 'role', label: 'Peranan', type: 'select', options: [['lecturer', 'Pensyarah'], ['admin', 'Pentadbir']], required: true },
+      { name: 'email', label: 'E-mel', type: 'email', required: true }, { name: 'role', label: 'Peranan', type: 'select', options: [['lecturer', 'Pensyarah'], ['admin', 'Pentadbir']], required: true, help: 'users_role' },
       { name: 'department', label: 'Jabatan', type: 'select', options: [...DEPARTMENTS, 'Pejabat Fakulti', ...(u && ![...DEPARTMENTS, 'Pejabat Fakulti'].includes(u.department) && u.department ? [u.department] : [])], required: true }, { name: 'status', label: 'Status', type: 'select', options: [['Active', 'Aktif'], ['Inactive', 'Tidak Aktif']], required: true },
       ...(u ? [] : [{ name: 'password', label: 'Kata Laluan Awal', type: 'password', required: true, minlen: 8, autocomplete: 'new-password' }]),
     ];

@@ -1,4 +1,5 @@
 import * as api from '../api.js';
+import { helpBtn } from '../help.js';
 import { store, lecturerOf, categoryOf } from '../api.js';
 import { html, mount, $, icon, download, toCsv, fmtDate } from '../util.js';
 import { DEPARTMENTS, ENTITIES, LEVELS } from '../schema.js';
@@ -18,7 +19,7 @@ for (const k of ['research', 'publications', 'certifications', 'training', 'cons
 export async function render(root) {
   const f = { type: 'matrix', dept: '', level: '', year: '' };
   const years = [...new Set([...store.research, ...store.publications, ...store.consultancy, ...store.achievements].map((r) => r.year))].sort((a, b) => b - a);
-  mount(root, html`${pageHead('Laporan', 'Tapis, pratonton, kemudian eksport ke CSV atau cetak / simpan sebagai PDF.', html`<button class="btn ghost" id="pr">${icon('print', 18)} Cetak / PDF</button><button class="btn primary" id="ex">${icon('download', 18)} Eksport CSV</button>`)}
+  mount(root, html`${pageHead('Laporan', 'Tapis, pratonton, kemudian eksport ke CSV atau cetak / simpan sebagai PDF.', html`<button class="btn ghost" id="pr">${icon('print', 18)} Cetak / PDF</button>${helpBtn('reports_print')}<button class="btn primary" id="ex">${icon('download', 18)} Eksport CSV</button>`)}
     <div class="card no-print" style="margin-bottom:18px"><div class="toolbar" style="margin:0"><select class="input" id="t" style="max-width:240px" aria-label="Jenis laporan">${Object.entries(REPORTS).map(([k, r]) => html`<option value="${k}">${r.title}</option>`)}</select>
       <select class="input" id="d" style="max-width:220px" aria-label="Jabatan"><option value="">Semua jabatan</option>${DEPARTMENTS.map((d) => html`<option>${d}</option>`)}</select>
       <select class="input" id="l" style="max-width:200px" aria-label="Tahap"><option value="">Semua tahap</option>${LEVELS.map((d) => html`<option>${d}</option>`)}</select>

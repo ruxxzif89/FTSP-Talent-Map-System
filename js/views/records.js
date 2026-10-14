@@ -3,9 +3,10 @@ import * as api from '../api.js';
 import { store, lecturerOf, myLecturer } from '../api.js';
 import { html, mount, $, icon, toast, openDrawer, confirmDialog, download, toCsv, avatar } from '../util.js';
 import { ENTITIES } from '../schema.js';
-import { fieldHtml, readForm, busy, dataTable, pageHead, searchBox, cell, saveDownload, debounce } from './_ui.js';
+import { fieldHtml, readForm, busy, dataTable, pageHead, searchBox, cell, saveDownload, debounce, formFields, wireShow } from './_ui.js';
+import { helpBtn } from '../help.js';
 
-export async function render(root, { entity, lecturer: lecFilter }) {
+export async function render(root, { entity, lecturer: lecFilter, add, ...query }) {
   const E = ENTITIES[entity]; const admin = store.me.role === 'admin';
   const me = myLecturer();
   const state = { lec: '' };
@@ -19,7 +20,7 @@ export async function render(root, { entity, lecturer: lecFilter }) {
 
   mount(root, html`
     ${pageHead(admin ? E.plural : E.mine, admin ? `Rekod ${E.plural.toLowerCase()} semua pensyarah.` : `Urus rekod ${E.plural.toLowerCase()} anda.`,
-      html`<button class="btn ghost" id="exp">${icon('download', 18)} Eksport CSV</button><button class="btn primary" id="add">${icon('plus', 18)} Tambah ${E.singular}</button>`)}
+      html`<button class="btn ghost" id="exp">${icon('download', 18)} Eksport CSV</button><button class="btn primary" id="add">${icon('plus', 18)} Tambah ${E.singular}</button>`, '', E.helpKey || 'records')}
     <div class="toolbar">${searchBox('q', `Cari ${E.plural.toLowerCase()}…`)}${admin ? html`<select class="input" id="lf" style="max-width:260px" aria-label="Tapis mengikut pensyarah"><option value="">Semua pensyarah</option>${[...store.lecturers].sort((a, b) => a.full_name.localeCompare(b.full_name)).map((l) => html`<option value="${l.id}">${l.full_name}</option>`)}</select>` : ''}</div>
     <div id="tbl"></div>`);
 
@@ -35,11 +36,12 @@ export async function render(root, { entity, lecturer: lecFilter }) {
   const form = (row) => {
     const base = entity === 'documents' && row ? E.fields.filter((f) => f.name !== 'file') : E.fields; // editing a document only changes its metadata
     const fields = admin && !row ? [{ name: 'lecturer_id', label: 'Pensyarah', type: 'lecturer', required: true }, ...base] : base;
-    const body = html`<form class="form" id="rf" novalidate>${fields.map((f) => fieldHtml(f, f.name === 'lecturer_id' ? state.lec : row ? row[f.name] ?? '' : f.name === 'year' ? new Date().getFullYear() : ''))}<div class="form-actions"><button type="button" class="btn ghost" data-cancel>Batal</button><button class="btn primary" type="submit" id="sv">Simpan ${E.singular}</button></div></form>`;
+    const valOf = (f) => (f.name === 'lecturer_id' ? state.lec : row ? row[f.name] ?? '' : query[f.name] ?? (f.name === 'year' ? new Date().getFullYear() : f.default ?? ''));
+    const body = html`<form class="form" id="rf" novalidate>${formFields(fields, valOf)}<div class="form-actions"><button type="button" class="btn ghost" data-cancel>Batal</button><button class="btn primary" type="submit" id="sv">Simpan ${E.singular}</button></div></form>`;
     openDrawer({
       title: `${row ? 'Kemas Kini' : 'Tambah'} ${E.singular}`, body,
       onMount: (el, close) => {
-        $('[data-cancel]', el).onclick = close;
+        $('[data-cancel]', el).onclick = close; wireShow($('#rf', el), fields);
         $('#rf', el).onsubmit = async (ev) => {
           ev.preventDefault();
           const { values, files, ok } = readForm(ev.target, fields); if (!ok) return;
@@ -62,6 +64,7 @@ export async function render(root, { entity, lecturer: lecFilter }) {
     });
   };
   $('#add', root).onclick = () => form(null);
+  if (add) setTimeout(() => form(null), 60); // pautan terus dari halaman Kenaikan Pangkat: borang terbuka dengan jenis yang betul
   $('#exp', root).onclick = () => {
     const rows = rowsFn(); const head = [...(admin ? ['Pensyarah', 'No. Staf'] : []), ...E.columns.map((c) => c.label)];
     download(`${entity}.csv`, toCsv(head, rows.map((r) => [...(admin ? [(lecturerOf(r.lecturer_id) || {}).full_name, (lecturerOf(r.lecturer_id) || {}).staff_id] : []), ...E.columns.map((c) => (c.fmt === 'category' ? (api.categoryOf(r[c.key]) || {}).name : r[c.key]))])));

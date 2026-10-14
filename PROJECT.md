@@ -248,7 +248,7 @@ Run locally: `python -m http.server 5173` → http://localhost:5173 (ES modules 
 
 ---
 
-## 4. Data model (12 tables)
+## 4. Data model (12 core tables + 6 promotion tables — see §22)
 
 All ids are strings: `<prefix>_<random>` (server-generated). Timestamps are ISO-8601 strings. Table/column names are identical in: `Code.gs` (`T`), `local-server.js`/`schema.js`, `docs/schema.sql`.
 
@@ -655,3 +655,22 @@ Give the AI this file plus the proposal PDF and the two mockups, then proceed in
 12. **Deck:** capture screenshots with `tools/screenshots.mjs`, build the 28 slides (§14).
 
 When in doubt, read the code: it is small (roughly 2,600 lines of JS, CSS and Apps Script, with no dependency besides Three.js).
+
+
+---
+
+## 22. Promotion module (Kenaikan Pangkat) — added after the first release
+
+**Source:** *Garis Panduan Kenaikan Pangkat Staf Akademik UPNM, Edisi 2025 (LPU 28 Ogos 2025)*, 108 pages. The PDF is personal and git-ignored; all rules are encoded as DATA in `js/promotion/guideline.js` with `§` paragraph references. Full design note (Malay): `docs/KENAIKAN-PANGKAT.md`; SQL: `docs/schema_promotion.sql`.
+
+**User-friendliness principle (hard requirement from the user):** the system must be friendly to lecturers and admins; a feature-rich, complex UI is worthless. Therefore: one primary action per screen, plain Malay, a "?" help button (`js/help.js`, `HELP` registry, ~150 entries with § references) beside every term/button that looks complex, a topbar "Bantuan" button explaining the current page, optional promotion fields folded away in forms, and a guided demo. When adding features, add the `?` entries too.
+
+**Architecture:** pure rule engine (`engine.js`, no DOM, unit-tested by `tools/test-engine.mjs`) + data (`guideline.js`) + workflow table (`workflow.js`, duplicated in `Code.gs`) + views (`js/views/kp*.js`, `panduan.js`, `demoKp.js`, `lampiran.js`). Tables: `activities`, `lppt_scores`, `disciplinary`, `promotion_applications`, `promotion_events`, `promotion_assessors`; new columns on `lecturers` (`grade`, `grade_since`, `appointed_on`, `confirmed_on`, `vk7_since`, `field`, `has_phd`, `has_prof_qual`, `employment`, `syarahan_perdana`, `monograf`, `scopus_h_index`), `research`, `publications`, `consultancy`. Appended at the END of each sheet so existing rows are unaffected; run `setup()` after pasting the new `Code.gs`, then deploy a NEW VERSION.
+
+**Rules worth remembering:** counting windows (DS13 = since entering DS11; DS14/VK7 = since appointment; VK6/VK5 = since VK7); equivalences §6.7; discipline periods merge (§2.3.5-2.3.8); `promotion_applications/events` have no generic CRUD; admin acts "on behalf of" committees; ≥3 assessor reports needed to leave `penilai`; appeal ≤ 30 days; `promoSubmit` needs `ack`.
+
+**Routes:** lecturer `#/kp`, `#/kp/mohon`, `#/kp/:id`; admin `#/kp-admin`, `#/kp-admin/:id`, `#/lppt_scores`, `#/disciplinary`; both `#/panduan`, `#/demo-kp`, `#/activities`. Deep link `#/<entity>?add=1&kind=<k>` opens the add form pre-filled.
+
+**Not done:** Guru Bahasa and Pensyarah Perubatan time-based paths; UAT with real staff. Assumptions listed in `docs/KENAIKAN-PANGKAT.md`.
+
+**Gotchas:** `ftm:seeded` bumped to `'6'` (local sandbox reseeds once). Seed data lives in `js/seed-career.js` (called from `buildSeed`). `.sheet th` needs `position:static` (global sticky `th`).

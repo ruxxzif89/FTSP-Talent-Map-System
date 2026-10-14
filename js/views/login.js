@@ -1,6 +1,7 @@
 import * as api from '../api.js';
 import { html, mount, $, icon, logo } from '../util.js';
 import { CONFIG } from '../config.js';
+import { helpBtn } from '../help.js';
 
 export async function render(root) {
   mount(root, html`
@@ -18,7 +19,7 @@ export async function render(root) {
           <div class="err-box" id="err" role="alert" hidden></div>
           <div class="fld"><label for="u">Nama Pengguna / E-mel</label><input class="input" id="u" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
           <div class="fld"><label for="p">Kata Laluan</label><div class="pw"><input class="input" id="p" name="password" type="password" autocomplete="current-password" required><button type="button" class="icon-btn eye" id="eye" aria-label="Tunjuk kata laluan" aria-pressed="false" style="color:var(--ink-3)">${icon('eye', 20)}</button></div></div>
-          <div class="checks"><label><input type="checkbox" id="rem" checked> Ingat saya</label></div>
+          <div class="checks"><label><input type="checkbox" id="rem" checked> Ingat saya</label>${helpBtn('remember_me')}</div>
           <button class="btn primary" id="go" type="submit" style="width:100%">Log Masuk</button>
           ${CONFIG.backend === 'local' ? html`<div class="demo"><b>Akaun demo</b> (data demo setempat)<br>
             <button type="button" data-fill="admin|admin">Pentadbir</button> · <button type="button" data-fill="aisyah|Lecturer@123">Pensyarah (Dr. Aisyah)</button></div>` : ''}

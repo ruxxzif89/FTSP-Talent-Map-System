@@ -3,6 +3,8 @@ import * as api from '../api.js';
 import { store } from '../api.js';
 import { html, raw, esc, $, $$, icon, fmtDate, fmtSize, levelClass, statusClass, toast } from '../util.js';
 import { MAX_FILE_BYTES, FILE_ACCEPT, ACCOUNT_STATUS_LABEL } from '../schema.js';
+import { ACTIVITY_KINDS } from '../promotion/guideline.js';
+import { helpBtn, openPageHelp } from '../help.js';
 
 // ---------- cell formatting ----------
 export function cell(fmt, v, row) {
@@ -13,6 +15,8 @@ export function cell(fmt, v, row) {
     case 'date': return fmtDate(v);
     case 'expiry': { if (!v) return html`<span class="faint">Tiada tarikh tamat</span>`; const d = (new Date(v) - Date.now()) / 864e5; return html`${fmtDate(v)} ${d < 0 ? html`<span class="badge danger">Tamat tempoh</span>` : d <= 90 ? html`<span class="badge warn">Hampir tamat</span>` : ''}`; }
     case 'size': return fmtSize(v);
+    case 'actkind': { const k = ACTIVITY_KINDS[v]; return k ? html`<span class="badge info">${k.group}</span> ${k.label}` : v || '—'; }
+    case 'actname': return row && (row.title || row.student) ? html`<div class="clip">${row.title || row.student}</div>` : '—';
     case 'num': return v === '' || v == null ? '—' : String(v);
     default: return v === '' || v == null ? '—' : html`<div class="clip" title="${v}">${v}</div>`;
   }
@@ -34,7 +38,7 @@ export function fieldHtml(f, val = '', opts = {}) {
     }
     default: ctl = html`<input class="input" ${raw(common)} type="${f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : f.type === 'url' ? 'url' : f.type === 'email' ? 'email' : f.type === 'password' ? 'password' : 'text'}" value="${val}" ${f.min != null ? raw(`min="${f.min}"`) : ''} ${f.max != null ? raw(`max="${f.max}"`) : ''} ${f.placeholder ? raw(`placeholder="${esc(f.placeholder)}"`) : ''} ${f.autocomplete ? raw(`autocomplete="${f.autocomplete}"`) : ''} ${f.readonly ? raw('readonly') : ''}>`;
   }
-  return html`<div class="fld ${opts.cls || ''}"><label for="${id}">${f.label}${req}</label>${ctl}<div class="err" id="${id}_e" role="alert" hidden></div></div>`;
+  return html`<div class="fld ${opts.cls || ''}" data-fld="${f.name}"><div class="lbl-row"><label for="${id}">${f.label}${req}</label>${f.help ? helpBtn(f.help, f.label) : ''}</div>${ctl}<div class="err" id="${id}_e" role="alert" hidden></div></div>`;
 }
 
 // Validates + reads the form. Returns {values, files, ok}; shows inline errors and focuses the first bad field.
@@ -43,6 +47,7 @@ export function readForm(form, fields) {
   const bad = (f, msg) => { const e = $('#f_' + f.name + '_e', form), i = $('#f_' + f.name, form); e.innerHTML = icon('alert', 14).s + ' ' + esc(msg); e.hidden = false; i.setAttribute('aria-invalid', 'true'); first ||= i; };
   fields.forEach((f) => {
     const i = $('#f_' + f.name, form); const e = $('#f_' + f.name + '_e', form); if (!i) return;
+    const box = i.closest('[data-fld]'); if (box && box.hidden) { if (f.type !== 'file') values[f.name] = ''; return; } // medan tersembunyi (bergantung jenis) dikosongkan
     e.hidden = true; i.removeAttribute('aria-invalid');
     if (f.type === 'file') {
       const file = i.files && i.files[0];
@@ -91,7 +96,22 @@ export function dataTable(host, opts) {
   return { refresh: draw, search: (q) => { st.q = q; st.page = 0; draw(); } };
 }
 
-export const pageHead = (title, sub, actions = '', crumb = '') => html`<div class="page-head"><div>${crumb ? html`<div class="crumb">${crumb}</div>` : ''}<h1>${title}</h1>${sub ? html`<p>${sub}</p>` : ''}</div><div class="row">${actions}</div></div>`;
+// Borang berpandu: medan `group` dilipat dalam bahagian pilihan; medan `show(vals)` muncul mengikut pilihan lain.
+export function formFields(fields, valOf) {
+  const plain = fields.filter((f) => !f.group), grouped = fields.filter((f) => f.group);
+  const g = grouped[0] && grouped[0].group;
+  const hasVal = grouped.some((f) => { const v = valOf(f); return v !== '' && v != null && v !== f.default; });
+  return html`${plain.map((f) => fieldHtml(f, valOf(f)))}${grouped.length ? html`<details class="grp-box" ${hasVal ? raw('open') : ''}><summary>${g.title}<span class="small faint"> — klik untuk buka</span></summary><p class="small muted">${g.note}</p><div class="stack">${grouped.map((f) => fieldHtml(f, valOf(f)))}</div></details>` : ''}`;
+}
+export function wireShow(form, fields) {
+  const dyn = fields.filter((f) => f.show); if (!dyn.length) return;
+  const vals = () => Object.fromEntries(fields.map((f) => { const i = $('#f_' + f.name, form); return [f.name, i ? i.value : '']; }));
+  const upd = () => { const v = vals(); dyn.forEach((f) => { const b = $(`[data-fld="${f.name}"]`, form); if (b) b.hidden = !f.show(v); }); };
+  form.addEventListener('input', upd); form.addEventListener('change', upd); upd();
+}
+
+const AUTO_HELP = { 'Papan Pemuka': () => (store.me && store.me.role === 'admin' ? 'dashboard_admin' : 'dashboard_lecturer'), 'Akaun & Kata Laluan': 'account', 'Kategori Kepakaran': 'categories', 'Pensyarah': 'lecturers', 'Profil Pensyarah': 'lecturers', 'Profil Saya': 'profile', 'Laporan': 'reports', 'Statistik': 'stats', 'Pemetaan Bakat': 'talent', 'Urus Pengguna': 'users' };
+export const pageHead = (title, sub, actions = '', crumb = '', helpKey = (AUTO_HELP[title] instanceof Function ? AUTO_HELP[title]() : AUTO_HELP[title]) || '') => html`<div class="page-head"><div>${crumb ? html`<div class="crumb">${crumb}</div>` : ''}<h1>${title}${helpKey ? html` ${helpBtn(helpKey, title)}` : ''}</h1>${sub ? html`<p>${sub}</p>` : ''}</div><div class="row">${actions}</div></div>`;
 export const searchBox = (id, ph) => html`<div class="search">${icon('search', 18)}<input class="input" id="${id}" type="search" placeholder="${ph}" aria-label="${ph}"></div>`;
 export const debounce = (fn, ms = 150) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 export { $, $$ };

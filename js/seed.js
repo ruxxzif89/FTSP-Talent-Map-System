@@ -1,4 +1,5 @@
 // Deterministic demo data (fictional people). Runs once in the local backend.
+import { addCareerData } from './seed-career.js';
 const rng = (seed) => () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 
 const CATS = [
@@ -127,5 +128,5 @@ export async function buildSeed(hashPw, opts = {}) {
   const aid = out.lecturers[0].id;
   [['Menambah pensijilan baharu', 57], ['Mengemas kini maklumat penyelidikan', 59], ['Menambah penerbitan baharu', 64], ['Mengemas kini gambar profil', 66]].forEach(([m, d]) => out.activity_log.push({ id: id('act'), lecturer_id: aid, message: m, created_at: iso(d - 50 > 0 ? d - 50 : 1) }));
   out.lecturers.slice(1, count > 40 ? 40 : 10).forEach((l, k) => out.activity_log.push({ id: id('act'), lecturer_id: l.id, message: pick(['Menambah penerbitan baharu', 'Mengemas kini maklumat kepakaran', 'Menambah pensijilan baharu']), created_at: iso(k * 0.4 + 0.2) }));
-  return out;
+  return addCareerData(out, { id, iso, prefix });
 }

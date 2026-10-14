@@ -16,21 +16,36 @@ var MAX_CELL_CHARS = 45000;              // a Sheets cell holds 50,000 character
 // ---------- schema: one sheet per table; column names == SQL column names ----------
 var T = {
   users:                ['id', 'username', 'email', 'full_name', 'role', 'department', 'status', 'salt', 'password_hash', 'last_login', 'created_at', 'updated_at'],
-  lecturers:            ['id', 'user_id', 'staff_id', 'full_name', 'email', 'department', 'position', 'phone', 'location', 'bio', 'photo', 'created_at', 'updated_at'],
+  lecturers:            ['id', 'user_id', 'staff_id', 'full_name', 'email', 'department', 'position', 'phone', 'location', 'bio', 'photo', 'created_at', 'updated_at', 'grade', 'grade_since', 'appointed_on', 'confirmed_on', 'vk7_since', 'field', 'has_phd', 'has_prof_qual', 'employment', 'syarahan_perdana', 'monograf', 'scopus_h_index'],
   expertise_categories: ['id', 'name', 'color', 'description', 'created_at', 'updated_at'],
   expertise:            ['id', 'lecturer_id', 'category_id', 'area', 'level', 'years', 'interest', 'document_id', 'created_at', 'updated_at'],
-  research:             ['id', 'lecturer_id', 'title', 'area', 'category', 'year', 'status', 'description', 'document_id', 'created_at', 'updated_at'],
-  publications:         ['id', 'lecturer_id', 'title', 'type', 'venue', 'year', 'status', 'doi', 'document_id', 'created_at', 'updated_at'],
+  research:             ['id', 'lecturer_id', 'title', 'area', 'category', 'year', 'status', 'description', 'document_id', 'created_at', 'updated_at', 'role', 'grant_source', 'amount', 'registered_ppi'],
+  publications:         ['id', 'lecturer_id', 'title', 'type', 'venue', 'year', 'status', 'doi', 'document_id', 'created_at', 'updated_at', 'indexing', 'author_role'],
   certifications:       ['id', 'lecturer_id', 'name', 'issuer', 'issue_date', 'expiry_date', 'cert_no', 'document_id', 'created_at', 'updated_at'],
   training:             ['id', 'lecturer_id', 'name', 'organizer', 'date', 'status', 'duration_days', 'description', 'document_id', 'created_at', 'updated_at'],
-  consultancy:          ['id', 'lecturer_id', 'project', 'client', 'role', 'year', 'status', 'description', 'document_id', 'created_at', 'updated_at'],
+  consultancy:          ['id', 'lecturer_id', 'project', 'client', 'role', 'year', 'status', 'description', 'document_id', 'created_at', 'updated_at', 'amount', 'kind', 'registered_ppi'],
   achievements:         ['id', 'lecturer_id', 'name', 'category', 'year', 'description', 'document_id', 'created_at', 'updated_at'],
   documents:            ['id', 'lecturer_id', 'doc_type', 'title', 'file_name', 'mime', 'size', 'file_ref', 'created_at', 'updated_at'],
-  activity_log:         ['id', 'lecturer_id', 'message', 'created_at']
+  activity_log:         ['id', 'lecturer_id', 'message', 'created_at'],
+  // Modul kenaikan pangkat
+  activities:           ['id', 'lecturer_id', 'kind', 'title', 'year', 'level', 'role', 'student', 'graduated', 'semester', 'workload_met', 'blended', 'score', 'terms', 'document_id', 'created_at', 'updated_at'],
+  lppt_scores:          ['id', 'lecturer_id', 'year', 'score', 'created_at', 'updated_at'],
+  disciplinary:         ['id', 'lecturer_id', 'case_no', 'penalty', 'date', 'note', 'created_at', 'updated_at'],
+  promotion_applications: ['id', 'lecturer_id', 'from_grade', 'to_grade', 'field', 'status', 'step_since', 'submitted_at', 'decision_date', 'effective_date', 'qualifications', 'work_history', 'thesis_title', 'note_candidate', 'checks', 'appeal_reason', 'created_at', 'updated_at'],
+  promotion_events:     ['id', 'application_id', 'lecturer_id', 'at', 'actor', 'actor_role', 'action', 'from_status', 'to_status', 'note'],
+  promotion_assessors:  ['id', 'application_id', 'lecturer_id', 'name', 'institution', 'country', 'position', 'h_index', 'checks', 'status', 'recommendation', 'report_note', 'created_at', 'updated_at']
 };
-var OWNED = ['expertise', 'research', 'publications', 'certifications', 'training', 'consultancy', 'achievements', 'documents', 'activity_log'];
-var SINGULAR = { expertise: 'kepakaran', research: 'penyelidikan', publications: 'penerbitan', certifications: 'pensijilan', training: 'latihan', consultancy: 'konsultansi', achievements: 'pencapaian', documents: 'dokumen' };
-var NUMERIC = { years: 1, year: 1, duration_days: 1, size: 1 };
+var OWNED = ['expertise', 'research', 'publications', 'certifications', 'training', 'consultancy', 'achievements', 'documents', 'activity_log', 'activities', 'lppt_scores', 'disciplinary', 'promotion_applications', 'promotion_events', 'promotion_assessors'];
+var ADMIN_WRITE = ['lppt_scores', 'disciplinary', 'promotion_assessors'];               // hanya pentadbir boleh menulis
+var ACTION_ONLY = ['promotion_applications', 'promotion_events'];                         // tiada CRUD generik: hanya melalui tindakan promo*
+var SERVICE_FIELDS = ['grade', 'grade_since', 'appointed_on', 'confirmed_on', 'vk7_since', 'field', 'has_phd', 'has_prof_qual', 'employment', 'syarahan_perdana', 'monograf']; // data HR: pentadbir sahaja
+var NEXT_GRADE = { DS11: 'DS13', DS13: 'DS14', DS14: 'VK7', VK7: 'VK6', VK6: 'VK5' };
+var ACTIVE_STATUSES = ['draf', 'fakulti', 'pendaftar', 'saringan', 'penilai', 'pemilih', 'lpu', 'syarahan', 'rayuan'];
+var FINAL_NEXT = { kembali: 'draf', gagal: 'tidak_berjaya', rayuan_berjaya: 'rayuan_berjaya', rayuan_tolak: 'rayuan_ditolak', tarik_balik: 'ditarik_balik' };
+var ALLOWED_ACTS = { fakulti: ['lulus', 'kembali', 'gagal'], pendaftar: ['lulus', 'kembali', 'gagal'], saringan: ['lulus', 'gagal'], penilai: ['lulus'], pemilih: ['lulus', 'gagal'], lpu: ['lulus', 'gagal'], syarahan: ['lulus'], rayuan: ['rayuan_berjaya', 'rayuan_tolak'], berjaya: ['tarik_balik'] };
+var APPEAL_DAYS = 30;
+var SINGULAR = { expertise: 'kepakaran', research: 'penyelidikan', publications: 'penerbitan', certifications: 'pensijilan', training: 'latihan', consultancy: 'konsultansi', achievements: 'pencapaian', documents: 'dokumen', activities: 'aktiviti', lppt_scores: 'markah LPPT', disciplinary: 'hukuman tatatertib', promotion_assessors: 'penilai luar' };
+var NUMERIC = { years: 1, year: 1, duration_days: 1, size: 1, amount: 1, score: 1, terms: 1, h_index: 1, scopus_h_index: 1 };
 var DEFAULT_CATEGORIES = [
   ['Keselamatan Siber', '#1d5fd1'], ['Kecerdasan Buatan', '#7c3aed'], ['Rangkaian', '#0891b2'], ['Pangkalan Data', '#16a34a'],
   ['Forensik Digital', '#e11d48'], ['Kejuruteraan Perisian', '#ea580c'], ['Keselamatan Maklumat', '#0f766e'], ['Sains Data', '#ca8a04'],
@@ -122,7 +137,7 @@ function doPost(e) {
   return json_(out);
 }
 
-var WRITES = { bulkImport: 1, clearDemo: 1, create: 1, update: 1, remove: 1, upload: 1, createUser: 1, updateUser: 1, resetPassword: 1, changePassword: 1, deleteUser: 1 };
+var WRITES = { promoSave: 1, promoSubmit: 1, promoAct: 1, promoAppeal: 1, promoRemove: 1, bulkImport: 1, clearDemo: 1, create: 1, update: 1, remove: 1, upload: 1, createUser: 1, updateUser: 1, resetPassword: 1, changePassword: 1, deleteUser: 1 };
 
 // =====================================================================
 // Actions (same contract as js/local-server.js)
@@ -153,9 +168,9 @@ var ACTIONS = {
 
   create: function (p, ctx) {
     var table = p.table, row = p.row || {};
-    if (table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || table === 'activity_log' || table === 'documents')) throw httpErr_('Jadual tidak sah.', 400);
+    if (table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || ['activity_log', 'documents'].concat(ACTION_ONLY).indexOf(table) >= 0)) throw httpErr_('Jadual tidak sah.', 400);
     var admin = ctx.user.role === 'admin';
-    if (table === 'expertise_categories') needAdmin_(ctx);
+    if (table === 'expertise_categories' || ADMIN_WRITE.indexOf(table) >= 0) needAdmin_(ctx);
     var r = clean_(table, row); r.id = uid_(table.slice(0, 3)); r.created_at = now_(); r.updated_at = now_();
     if (OWNED.indexOf(table) >= 0) {
       r.lecturer_id = admin ? row.lecturer_id : (ctx.lecturer && ctx.lecturer.id);
@@ -169,15 +184,15 @@ var ACTIONS = {
 
   update: function (p, ctx) {
     var table = p.table;
-    if (table !== 'lecturers' && table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || table === 'activity_log')) throw httpErr_('Jadual tidak sah.', 400);
+    if (table !== 'lecturers' && table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || ['activity_log'].concat(ACTION_ONLY).indexOf(table) >= 0)) throw httpErr_('Jadual tidak sah.', 400);
     var row = find_(table, p.id); if (!row) throw httpErr_('Rekod tidak ditemui.', 404);
     var admin = ctx.user.role === 'admin', mine = ctx.lecturer && ctx.lecturer.id;
-    if (table === 'expertise_categories') needAdmin_(ctx);
+    if (table === 'expertise_categories' || ADMIN_WRITE.indexOf(table) >= 0) needAdmin_(ctx);
     else if (table === 'lecturers') { if (!admin && row.id !== mine) throw httpErr_('Tidak dibenarkan.', 403); }
     else if (!admin && row.lecturer_id !== mine) throw httpErr_('Tidak dibenarkan.', 403);
     var patch = clean_(table, p.patch || {});
     ['id', 'lecturer_id', 'user_id', 'created_at'].forEach(function (k) { delete patch[k]; });
-    if (table === 'lecturers' && !admin) delete patch.staff_id;
+    if (table === 'lecturers' && !admin) { delete patch.staff_id; SERVICE_FIELDS.forEach(function (k) { delete patch[k]; }); }
     if (table === 'documents') patch = { title: patch.title, doc_type: patch.doc_type };
     if (patch.document_id) assertOwnsDoc_(patch.document_id, row.lecturer_id);
     patch.updated_at = now_();
@@ -191,9 +206,10 @@ var ACTIONS = {
 
   remove: function (p, ctx) {
     var table = p.table;
-    if (table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || table === 'activity_log')) throw httpErr_('Jadual tidak sah.', 400);
+    if (table !== 'expertise_categories' && (OWNED.indexOf(table) < 0 || ['activity_log'].concat(ACTION_ONLY).indexOf(table) >= 0)) throw httpErr_('Jadual tidak sah.', 400);
     var row = find_(table, p.id); if (!row) throw httpErr_('Rekod tidak ditemui.', 404);
     var admin = ctx.user.role === 'admin';
+    if (ADMIN_WRITE.indexOf(table) >= 0) needAdmin_(ctx);
     if (table === 'expertise_categories') {
       needAdmin_(ctx);
       if (rows_('expertise').some(function (e) { return e.category_id === p.id; })) throw httpErr_('Kategori ini sedang digunakan oleh rekod kepakaran pensyarah dan tidak boleh dipadam.', 409);
@@ -269,6 +285,69 @@ var ACTIONS = {
       if (keep.length) sh.getRange(2, 1, keep.length, cols.length).setValues(keep);
     });
     return out;
+  },
+
+  // ---------- Kenaikan pangkat (aliran kerja; ikut js/promotion/workflow.js) ----------
+  promoSave: function (p, ctx) {
+    var admin = ctx.user.role === 'admin', app = p.id ? find_('promotion_applications', p.id) : null;
+    var lec = find_('lecturers', admin ? (p.lecturer_id || (app && app.lecturer_id)) : (ctx.lecturer && ctx.lecturer.id));
+    if (!lec) throw httpErr_('Pensyarah diperlukan.', 400);
+    if (app) {
+      if (app.lecturer_id !== lec.id) throw httpErr_('Tidak dibenarkan.', 403);
+      if (app.status !== 'draf') throw httpErr_('Permohonan hanya boleh dikemas kini semasa masih draf.', 409);
+    } else {
+      if (!lec.grade || !NEXT_GRADE[lec.grade]) throw httpErr_('Gred semasa belum ditetapkan atau sudah di gred tertinggi. Hubungi Pentadbir.', 409);
+      if (rows_('promotion_applications').some(function (a) { return a.lecturer_id === lec.id && ACTIVE_STATUSES.indexOf(a.status) >= 0; })) throw httpErr_('Anda sudah mempunyai permohonan yang sedang berjalan.', 409);
+      app = { id: uid_('prm'), lecturer_id: lec.id, from_grade: lec.grade, to_grade: NEXT_GRADE[lec.grade], field: lec.field || 'Sains & Teknologi', status: 'draf', step_since: now_(), submitted_at: '', decision_date: '', effective_date: '', qualifications: '', work_history: '', thesis_title: '', note_candidate: '', checks: '{}', appeal_reason: '', created_at: now_(), updated_at: now_() };
+      insert_('promotion_applications', app);
+    }
+    var patch = { updated_at: now_() };
+    ['qualifications', 'work_history', 'thesis_title', 'note_candidate'].forEach(function (k) { if (p[k] !== undefined) patch[k] = String(p[k]).slice(0, 4000); });
+    return update_('promotion_applications', app.id, patch);
+  },
+  promoSubmit: function (p, ctx) {
+    var app = find_('promotion_applications', p.id); if (!app) throw httpErr_('Permohonan tidak ditemui.', 404);
+    if (ctx.user.role !== 'admin' && app.lecturer_id !== (ctx.lecturer && ctx.lecturer.id)) throw httpErr_('Tidak dibenarkan.', 403);
+    if (app.status !== 'draf') throw httpErr_('Permohonan ini sudah dihantar.', 409);
+    if (!p.ack) throw httpErr_('Sila tandakan pengakuan bahawa maklumat adalah benar.', 400);
+    var saved = update_('promotion_applications', app.id, { status: 'fakulti', submitted_at: now_(), step_since: now_(), updated_at: now_() });
+    promoEvent_(app, ctx.user.full_name, 'Calon', 'hantar', 'draf', 'fakulti', 'Permohonan dihantar kepada Fakulti.'); log_(app.lecturer_id, 'Menghantar permohonan kenaikan pangkat');
+    return saved;
+  },
+  promoAct: function (p, ctx) {
+    needAdmin_(ctx);
+    var app = find_('promotion_applications', p.id); if (!app) throw httpErr_('Permohonan tidak ditemui.', 404);
+    var allowed = (ALLOWED_ACTS[app.status] || []).filter(function (a) { return !(app.status === 'lpu' && a === 'gagal' && ['VK7', 'VK6', 'VK5'].indexOf(app.to_grade) < 0); });
+    if (allowed.indexOf(p.act) < 0) throw httpErr_('Tindakan tidak dibenarkan pada langkah ini.', 409);
+    var to = p.act === 'lulus' ? nextStatus_(app.to_grade, app.status) : FINAL_NEXT[p.act];
+    if (app.status === 'penilai' && p.act === 'lulus' && rows_('promotion_assessors').filter(function (x) { return x.application_id === app.id && x.status === 'Laporan diterima'; }).length < 3) throw httpErr_('Sekurang-kurangnya 3 laporan Penilai Luar diperlukan sebelum meneruskan.', 409);
+    var from = app.status, today = now_().slice(0, 10), ck = {};
+    try { ck = JSON.parse(app.checks || '{}'); } catch (e) { ck = {}; }
+    Object.keys(p.checks || {}).forEach(function (k) { if (p.checks[k]) ck[from + '.' + k] = today; else delete ck[from + '.' + k]; });
+    var patch = { status: to, step_since: now_(), updated_at: now_(), checks: JSON.stringify(ck) };
+    if (['berjaya', 'tidak_berjaya', 'rayuan_berjaya', 'rayuan_ditolak', 'ditarik_balik'].indexOf(to) >= 0) patch.decision_date = today;
+    if (to === 'berjaya') patch.effective_date = p.effective || today;
+    var saved = update_('promotion_applications', app.id, patch);
+    promoEvent_(app, ctx.user.full_name, String(p.as || 'Pentadbir').slice(0, 60), p.act, from, to, String(p.note || '').slice(0, 1000));
+    log_(app.lecturer_id, to === 'berjaya' ? 'Permohonan kenaikan pangkat berjaya' : 'Status permohonan kenaikan pangkat dikemas kini');
+    return saved;
+  },
+  promoAppeal: function (p, ctx) {
+    var app = find_('promotion_applications', p.id); if (!app) throw httpErr_('Permohonan tidak ditemui.', 404);
+    if (ctx.user.role !== 'admin' && app.lecturer_id !== (ctx.lecturer && ctx.lecturer.id)) throw httpErr_('Tidak dibenarkan.', 403);
+    var days = app.decision_date ? (new Date().getTime() - new Date(app.decision_date).getTime()) / 864e5 : 999;
+    if (app.status !== 'tidak_berjaya' || days > APPEAL_DAYS) throw httpErr_('Tempoh rayuan 30 hari telah tamat atau rayuan tidak dibenarkan bagi status ini.', 409);
+    if (String(p.reason || '').trim().length < 20) throw httpErr_('Sila nyatakan alasan rayuan (sekurang-kurangnya 20 aksara).', 400);
+    var saved = update_('promotion_applications', app.id, { status: 'rayuan', appeal_reason: String(p.reason).slice(0, 2000), step_since: now_(), updated_at: now_() });
+    promoEvent_(app, ctx.user.full_name, 'Calon', 'rayuan', 'tidak_berjaya', 'rayuan', String(p.reason).slice(0, 2000));
+    return saved;
+  },
+  promoRemove: function (p, ctx) {
+    var app = find_('promotion_applications', p.id); if (!app) throw httpErr_('Permohonan tidak ditemui.', 404);
+    var admin = ctx.user.role === 'admin';
+    if (!admin && (app.lecturer_id !== (ctx.lecturer && ctx.lecturer.id) || app.status !== 'draf')) throw httpErr_('Hanya draf sendiri boleh dipadam.', 403);
+    deleteWhere_('promotion_events', 'application_id', app.id); deleteWhere_('promotion_assessors', 'application_id', app.id); delete_('promotion_applications', app.id);
+    return { id: p.id };
   },
 
   createUser: function (p, ctx) {
@@ -390,6 +469,17 @@ function session_(token) {
   return { user: user, lecturer: lecturer };
 }
 function needAdmin_(ctx) { if (ctx.user.role !== 'admin') throw httpErr_('Untuk pentadbir sahaja.', 403); }
+function nextStatus_(toGrade, cur) {
+  var seq = ['draf', 'fakulti', 'pendaftar', 'saringan', 'penilai', 'pemilih', 'lpu', 'syarahan', 'berjaya'].filter(function (s) {
+    if (s === 'penilai') return ['DS14', 'VK7', 'VK6', 'VK5'].indexOf(toGrade) >= 0;        // DS13: tiada Penilai Luar (§3.5.1)
+    if (s === 'syarahan') return ['VK7', 'VK6', 'VK5'].indexOf(toGrade) >= 0;              // Syarahan Ilmiah / Perdana hanya jawatan Profesor
+    return true;
+  });
+  var i = seq.indexOf(cur); return i >= 0 && i < seq.length - 1 ? seq[i + 1] : cur;
+}
+function promoEvent_(app, actor, role, action, from, to, note) {
+  insert_('promotion_events', { id: uid_('pev'), application_id: app.id, lecturer_id: app.lecturer_id, at: now_(), actor: actor, actor_role: role, action: action, from_status: from, to_status: to, note: note });
+}
 function assertOwnsDoc_(docId, lid) { var d = find_('documents', docId); if (!d || d.lecturer_id !== lid) throw httpErr_('Dokumen sokongan tidak sah.', 400); }
 function safeUser_(u) { var o = {}; Object.keys(u).forEach(function (k) { if (k !== 'password_hash' && k !== 'salt') o[k] = u[k]; }); return o; }
 function hash_(salt, pw) {

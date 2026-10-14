@@ -54,6 +54,12 @@ const P = {
   link: '<path d="M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1"/><path d="M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1"/>',
   chevron: '<path d="m9 6 6 6-6 6"/>',
   arrow: '<path d="M5 12h14m-5-5 5 5-5 5"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.500"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.500v.5"/>',
+  back: '<path d="M19 12H5m5-5-5 5 5 5"/>',
+  play: '<path d="M7 4.500v15l12-7.500z"/>',
+  pause: '<path d="M8 5v14M16 5v14"/>',
 };
 export const icon = (name, size = 20, cls = '') => raw(`<svg class="ic ${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] || ''}</svg>`);
 
