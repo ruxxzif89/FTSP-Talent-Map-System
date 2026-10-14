@@ -133,7 +133,7 @@ function wirePopovers() {
   }
   $('#u-pop').addEventListener('click', async (e) => {
     const t = e.target.closest('[data-do]'); if (!t) return;
-    if (t.dataset.do === 'logout') { await api.logout(); location.hash = '#/login'; }
+    if (t.dataset.do === 'logout') { if (t.disabled) return; t.disabled = true; t.innerHTML = '<span class="spin" style="width:16px;height:16px;border:2.5px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:spin .7s linear infinite"></span> Sedang log keluar…'; await api.logout(); location.hash = '#/login'; }
     if (t.dataset.do === 'theme') { const d = document.documentElement; const n = d.dataset.theme === 'dark' ? 'light' : 'dark'; d.dataset.theme = n; try { localStorage.setItem('ftm:theme', n); } catch { /* private mode */ } closeAll(); window.dispatchEvent(new Event('themechange')); }
   });
 }

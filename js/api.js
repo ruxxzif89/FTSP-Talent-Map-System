@@ -10,16 +10,17 @@ export const onChange = (fn) => (listeners.add(fn), () => listeners.delete(fn));
 const emit = () => listeners.forEach((f) => f());
 
 async function transport(action, payload) {
+  const tk = token; // ditangkap serta-merta: logout membersihkan token sebelum permintaan dihantar
   if (CONFIG.backend === 'gas') {
     if (!CONFIG.gasUrl) throw new Error('URL Apps Script belum ditetapkan (js/config.js).');
     // text/plain avoids a CORS preflight, which Apps Script web apps cannot answer.
-    const res = await fetch(CONFIG.gasUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, payload, token }) });
+    const res = await fetch(CONFIG.gasUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, payload, token: tk }) });
     const j = await res.json();
     if (!j.ok) { const e = new Error(j.error || 'Permintaan gagal'); e.code = j.code; throw e; }
     return j.data;
   }
   const { handle } = await import('./local-server.js');
-  return handle(action, payload, token);
+  return handle(action, payload, tk);
 }
 
 export async function call(action, payload) {
@@ -43,7 +44,8 @@ export async function login(username, password, remember) {
   await load();
   return r.user;
 }
-export async function logout() { try { if (token) await call('logout'); } catch { /* ignore */ } clearSession(); emit(); }
+// Log keluar serta-merta: sesi dibersihkan di sini dahulu; pembatalan token di pelayan berjalan di latar belakang.
+export function logout() { if (token) call('logout').catch(() => {}); clearSession(); emit(); return Promise.resolve(); }
 
 // Session cache: lets a refresh paint instantly from the last snapshot while fresh data loads in the background.
 const SNAP_KEY = 'ftm:snap';
