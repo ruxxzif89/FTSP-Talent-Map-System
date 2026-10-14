@@ -26,6 +26,7 @@ export async function render(root) {
 
         </form>
       </section>
+      <footer class="login-foot"><b>Dibangunkan oleh Lailati binti Mohd</b><span>Ijazah Sarjana Muda Sains Komputer (Kepujian) ZC01 | No. Matrik 2241073</span><span>Penyelia: Prof. Madya Dr. Nor Azliana Akmal Binti Jamaludin</span></footer>
     </div>`);
   const f = $('#lf'), err = $('#err'), go = $('#go');
   $('#eye').onclick = (e) => { const p = $('#p'); const show = p.type === 'password'; p.type = show ? 'text' : 'password'; e.currentTarget.setAttribute('aria-pressed', show); e.currentTarget.setAttribute('aria-label', show ? 'Sembunyi kata laluan' : 'Tunjuk kata laluan'); e.currentTarget.innerHTML = icon(show ? 'eyeoff' : 'eye', 20).s; };
