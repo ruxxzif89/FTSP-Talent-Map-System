@@ -1,4 +1,4 @@
-// Aliran kerja permohonan (Garis Panduan §5.3): peraturan peralihan, digunakan oleh UI dan bahagian belakang setempat.
+// Aliran kerja permohonan (Garis Panduan Perenggan 5.3): peraturan peralihan, digunakan oleh UI dan bahagian belakang setempat.
 // (backend/Code.gs mempunyai salinan kecil jadual ini — kemas kini kedua-duanya serentak.)
 import { stepsFor, nextStepId, isProfessorGrade, APPEAL_DAYS, STEP } from './guideline.js';
 
@@ -14,7 +14,7 @@ const ALLOWED = {
 };
 export function allowedActs(status, toGrade) {
   let a = ALLOWED[status] || [];
-  if (status === 'lpu' && !isProfessorGrade(toGrade)) a = a.filter((x) => x !== 'gagal'); // selain Profesor: LPU hanya untuk pemakluman (§5.3.3)
+  if (status === 'lpu' && !isProfessorGrade(toGrade)) a = a.filter((x) => x !== 'gagal'); // selain Profesor: LPU hanya untuk pemakluman (Perenggan 5.3.3)
   return a;
 }
 export function nextStatus(status, act, toGrade) {

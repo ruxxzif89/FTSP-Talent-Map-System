@@ -1,8 +1,8 @@
 // Pengetahuan "Garis Panduan Kenaikan Pangkat Staf Akademik UPNM (Edisi 2025, LPU 28 Ogos 2025)" yang dikodkan sebagai DATA.
-// Fail ini tulen (tiada DOM) supaya enjin boleh diuji dengan Node. Rujukan "§" ialah nombor perenggan dalam Garis Panduan.
+// Fail ini tulen (tiada DOM) supaya enjin boleh diuji dengan Node. Rujukan "Perenggan " ialah nombor perenggan dalam Garis Panduan.
 // Jika angka dalam Garis Panduan dipinda, UBAH DI SINI SAHAJA — enjin, UI dan borang cetak akan mengikut.
 
-// ---------- Gred dan laluan (§1.3) ----------
+// ---------- Gred dan laluan (Perenggan 1.3) ----------
 export const GRADES = [
   { code: 'DS11', name: 'Pensyarah Universiti', short: 'DS11' },
   { code: 'DS13', name: 'Pensyarah Kanan', short: 'DS13' },
@@ -14,19 +14,19 @@ export const GRADES = [
 export const GRADE = Object.fromEntries(GRADES.map((g) => [g.code, g]));
 export const NEXT_GRADE = { DS11: 'DS13', DS13: 'DS14', DS14: 'VK7', VK7: 'VK6', VK6: 'VK5' };
 export const isProfessorGrade = (g) => ['VK7', 'VK6', 'VK5'].includes(g);       // jawatan Profesor → Jawatankuasa Pemilih Profesor, LPU pertimbangan
-export const needsExternalAssessors = (g) => ['DS14', 'VK7', 'VK6', 'VK5'].includes(g); // §3.5.1–3.5.4: DS13 tidak perlu
+export const needsExternalAssessors = (g) => ['DS14', 'VK7', 'VK6', 'VK5'].includes(g); // Perenggan 3.5.1–3.5.4: DS13 tidak perlu
 export const gradeLabel = (c) => (GRADE[c] ? `${GRADE[c].name} (${GRADE[c].short})` : c || '—');
 
-// ---------- Bidang (§2.1(y)) ----------
+// ---------- Bidang (Perenggan 2.1(y)) ----------
 export const FIELDS = ['Sains & Teknologi', 'Sains Sosial', 'Klinikal'];
 export const fieldIdx = (f) => (f === 'Sains Sosial' ? 1 : f === 'Klinikal' ? 2 : 0);
 
-// ---------- Peringkat & geran (§6.3 nota b–c) ----------
+// ---------- Peringkat & geran (Perenggan 6.3 nota b–c) ----------
 export const PERINGKAT = ['Antarabangsa', 'Kebangsaan', 'Negeri', 'Universiti', 'Fakulti / Pusat / Akademi'];
 export const GRANT_SOURCES = ['Universiti (Geran Dalam)', 'Kementerian (KPT)', 'Agensi Kerajaan', 'Industri', 'Antarabangsa'];
 export const isExternalGrant = (s) => !!s && s !== GRANT_SOURCES[0] && GRANT_SOURCES.includes(s); // Geran Luar = industri, KPT, agensi kerajaan, antarabangsa
 
-// ---------- Perundingan (§2.1(v)) ----------
+// ---------- Perundingan (Perenggan 2.1(v)) ----------
 export const CONSULT_KIND_OK = 'Perundingan dalam bidang kepakaran';
 export const CONSULT_KINDS = [
   CONSULT_KIND_OK,
@@ -41,11 +41,11 @@ export const CONSULT_KINDS = [
 ];
 export const CONSULT_ROLES = ['Perunding Utama', 'Perunding Bersama'];
 
-// ---------- Tatatertib (§2.3.5–2.3.8) ----------
+// ---------- Tatatertib (Perenggan 2.3.5–2.3.8) ----------
 export const PENALTY_MONTHS = { Amaran: 12, Denda: 18, 'Lucut Hak Emolumen': 24, 'Tangguh Pergerakan Gaji': 30, 'Turun Gaji': 36, 'Turun Pangkat': 48 };
 export const PENALTIES = Object.keys(PENALTY_MONTHS);
 
-// ---------- Penerbitan: klasifikasi & kesetaraan (§6.7.1–6.7.2) ----------
+// ---------- Penerbitan: klasifikasi & kesetaraan (Perenggan 6.7.1–6.7.2) ----------
 export const PUB_TYPES = ['Artikel Jurnal', 'Prosiding Persidangan', 'Buku', 'Bab dalam Buku', 'Terjemahan / Suntingan Buku', 'Laporan Teknikal', 'Kertas Polisi Antarabangsa', 'Kertas Polisi Kebangsaan', 'Penulisan Ilmiah dalam Media', 'Penulisan Popular', 'Modul / Modul Dalam Talian', 'Karya Kreatif', 'Paten', 'Lain-lain'];
 export const PUB_INDEXING = ['SCOPUS', 'WoS / ISI', 'Berindeks lain', 'Tidak berindeks'];
 export const AUTHOR_ROLES = ['Penulis Utama / Corresponding', 'Penulis Bersama'];
@@ -88,14 +88,14 @@ export const ACTIVITY_KINDS = {
 export const ACTIVITY_GROUPS = ['Pengajaran', 'Penyeliaan', 'Pengiktirafan Akademik', 'Kepimpinan & Khidmat'];
 export const activityKindLabels = () => Object.entries(ACTIVITY_KINDS).map(([k, v]) => [k, `${v.group} — ${v.label}`]);
 
-// ---------- Peraturan syarat wajib minimum (§6.2–6.6) ----------
+// ---------- Peraturan syarat wajib minimum (Perenggan 6.2–6.6) ----------
 // Nod peraturan: ALL (DAN), ANY (ATAU) atau daun. Enjin (engine.js) menafsirkannya.
 const ALL = (label, ...kids) => ({ type: 'all', label, kids });
 const ANY = (label, ...kids) => ({ type: 'any', label, kids });
 const L = (kind, p = {}) => ({ type: 'leaf', kind, ...p });
 const pick = (v, f) => (Array.isArray(v) ? v[Math.min(f, v.length - 1)] : v); // [S&T, Sosial, Klinikal]
 
-const teach = (sems) => L('teach', { sems, ref: '§6.2–6.6 Pengajaran' });
+const teach = (sems) => L('teach', { sems, ref: 'Perenggan 6.2–6.6 Pengajaran' });
 const sv = (vec) => L('svVec', { vec });
 const grantTotal = (total, per, role = 'led') => L('grantTotal', { total, per, role });
 const grantLed = (n, ext) => L('grantLed', { n, ext });
@@ -110,10 +110,10 @@ const KB = ['Antarabangsa', 'Kebangsaan']; // peringkat kebangsaan / antarabangs
 
 // Setiap peraturan dikembalikan sebagai { windowKey, components: { key: node } } bagi indeks bidang f (0=S&T, 1=Sosial, 2=Klinikal).
 export const RULES = {
-  // §6.2 — Pensyarah Kanan (DS13). Aktiviti dinilai ketika di DS11 sahaja (nota b).
+  // Perenggan 6.2 — Pensyarah Kanan (DS13). Aktiviti dinilai ketika di DS11 sahaja (nota b).
   DS13: (f) => ({
     windowKey: 'grade_since',
-    windowNote: 'Hanya aktiviti ketika anda di Gred DS11 dikira (§6.2 nota b).',
+    windowNote: 'Hanya aktiviti ketika anda di Gred DS11 dikira (Perenggan 6.2 nota b).',
     components: {
       pengajaran: teach(1),
       penyeliaan: ANY('Penyeliaan (pilih satu)', L('svPsm', { n: 5 }), L('svInvolved', { n: 3, label: 'Terlibat menyelia 3 pelajar Sarjana (Kerja Kursus)' }), L('svInvolvedAny', { kinds: ['sv_msc_res', 'sv_phd'], n: 1, label: 'Terlibat menyelia 1 pelajar Sarjana / PhD (Penyelidikan)' })),
@@ -122,10 +122,10 @@ export const RULES = {
       kepimpinan: ALL('Kepimpinan & khidmat', lead(['kp_ajk', 'kp_pengerusi'], ['Universiti', 'Fakulti / Pusat / Akademi'], 2, 'Sekurang-kurangnya 2 penglibatan sebagai ahli jawatankuasa peringkat Universiti / Fakulti / Pusat / Akademi'), lead(['kp_ajk', 'kp_pengerusi'], KB, 1, 'Sekurang-kurangnya 1 keahlian peringkat kebangsaan / antarabangsa')),
     },
   }),
-  // §6.3 — Profesor Madya (DS14). Dikira secara kumulatif sejak dilantik di UPNM (nota a).
+  // Perenggan 6.3 — Profesor Madya (DS14). Dikira secara kumulatif sejak dilantik di UPNM (nota a).
   DS14: (f) => ({
     windowKey: 'appointed_on',
-    windowNote: 'Dikira secara kumulatif sejak tarikh lantikan anda di UPNM (§6.3 nota a).',
+    windowNote: 'Dikira secara kumulatif sejak tarikh lantikan anda di UPNM (Perenggan 6.3 nota a).',
     components: {
       pengajaran: teach(6),
       penyeliaan: ANY('Penyeliaan (pilih satu)', sv({ phdMain: 1 }), sv({ mscRes: 2 }), sv({ mscRes: 1, phdCo: 1 }), sv({ mscRes: 1, kk: 3 })),
@@ -135,10 +135,10 @@ export const RULES = {
       kepimpinan: ALL('Kepimpinan, khidmat & perundingan', ANY('Jawatankuasa / program pelajar (pilih satu)', lead(['kp_ajk', 'kp_pengerusi'], KB, 1, '1 keahlian jawatankuasa peringkat kebangsaan / antarabangsa'), lead(['kp_pelajar'], PERINGKAT, 2, 'Ketua 2 program pembangunan pelajar')), consult(3, 2, 1, 20000)),
     },
   }),
-  // §6.4 — Profesor Gred Khas C (VK7)
+  // Perenggan 6.4 — Profesor Gred Khas C (VK7)
   VK7: (f) => ({
     windowKey: 'appointed_on',
-    windowNote: 'Dikira secara kumulatif sejak tarikh lantikan anda di UPNM (§6.4 nota b).',
+    windowNote: 'Dikira secara kumulatif sejak tarikh lantikan anda di UPNM (Perenggan 6.4 nota b).',
     components: {
       pengajaran: teach(6),
       penyeliaan: ANY('Penyeliaan (pilih satu)', sv({ phdMain: 1, mscRes: 2 }), sv({ phdMain: 2 }), sv({ phdMain: 1, mscRes: 1, kk: 3 })),
@@ -147,12 +147,12 @@ export const RULES = {
       pengiktirafan: recogAny(f, { editor: 1, penilaiJurnal: 5, penilaiBuku: 2, mooc: 2, micro: 20, ucaptama: 2, penilaiKP: 2, tesis: [3, 3, 0], klinikal: 3 }),
       kepimpinan: ALL('Kepimpinan, khidmat & perundingan', ANY('Jawatankuasa / program pelajar (pilih satu)', lead(['kp_pengerusi'], KB, 1, '1 jawatan pengerusi peringkat kebangsaan / antarabangsa'), lead(['kp_ajk'], KB, 2, '2 keahlian jawatankuasa peringkat kebangsaan / antarabangsa'), lead(['kp_pelajar'], PERINGKAT, 4, 'Ketua 4 program pembangunan pelajar')), consult(5, 3, 2, 50000)),
     },
-    after: 'Syarahan Ilmiah wajib selepas berjaya temuduga; pelantikan VK7 hanya disahkan untuk pergerakan gaji selepas syarahan (§2.1(z), §6.4).',
+    after: 'Syarahan Ilmiah wajib selepas berjaya temuduga; pelantikan VK7 hanya disahkan untuk pergerakan gaji selepas syarahan (Perenggan 2.1(z), 6.4).',
   }),
-  // §6.5 — Profesor Gred Khas B (VK6). Kumulatif dari VK7.
+  // Perenggan 6.5 — Profesor Gred Khas B (VK6). Kumulatif dari VK7.
   VK6: (f) => ({
     windowKey: 'vk7_since',
-    windowNote: 'Dikira secara kumulatif sejak anda berada di Gred VK7 (§6.5 nota b).',
+    windowNote: 'Dikira secara kumulatif sejak anda berada di Gred VK7 (Perenggan 6.5 nota b).',
     components: {
       pengajaran: teach(6),
       penyeliaan: ANY('Penyeliaan (pilih satu)', sv({ phdMain: 4, mscRes: 4 }), sv({ phdMain: 6 }), sv({ phdMain: 3, mscRes: 6 }), f === 2 ? sv({ phdMain: 2, phdCo: 1, mscRes: 5, kk: 3 }) : sv({ phdMain: 3, mscRes: 5, kk: 3 })),
@@ -163,10 +163,10 @@ export const RULES = {
       syarahan: L('flagSyarahanPerdana'),
     },
   }),
-  // §6.6 — Profesor Gred Khas A (VK5). Kumulatif dari VK7.
+  // Perenggan 6.6 — Profesor Gred Khas A (VK5). Kumulatif dari VK7.
   VK5: (f) => ({
     windowKey: 'vk7_since',
-    windowNote: 'Dikira secara kumulatif sejak anda berada di Gred VK7 (§6.6 nota b).',
+    windowNote: 'Dikira secara kumulatif sejak anda berada di Gred VK7 (Perenggan 6.6 nota b).',
     components: {
       pengajaran: teach(6),
       penyeliaan: ALL('Penyeliaan', ANY('Penyeliaan (pilih satu)', sv({ phdMain: 7, mscRes: 7 }), sv({ phdMain: 11 }), f === 2 ? sv({ phdMain: 4, phdCo: 3, mscRes: 6, kk: 3 }) : sv({ phdMain: 7, mscRes: 6, kk: 3 })), L('svPostdoc', { n: 1 })),
@@ -178,7 +178,7 @@ export const RULES = {
   }),
 };
 
-// Pilihan "pengiktirafan akademik": pelbagai laluan ATAU (§6.3–6.6). Nilai 0 / tiada = laluan itu tidak wujud bagi gred / bidang tersebut.
+// Pilihan "pengiktirafan akademik": pelbagai laluan ATAU (Perenggan 6.3–6.6). Nilai 0 / tiada = laluan itu tidak wujud bagi gred / bidang tersebut.
 function recogAny(f, n) {
   const alts = [];
   const tesis = Array.isArray(n.tesis) ? n.tesis[f] : n.tesis;
@@ -194,54 +194,54 @@ function recogAny(f, n) {
   return ANY('Pengiktirafan akademik (pilih satu)', ...alts);
 }
 
-// ---------- Syarat Umum (§2.3.1–2.3.2) — disemak oleh Fakulti / Pejabat Pendaftar ----------
+// ---------- Syarat Umum (Perenggan 2.3.1–2.3.2) — disemak oleh Fakulti / Pejabat Pendaftar ----------
 export const GENERAL_CONDITIONS = [
-  { key: 'confirmed', label: 'Telah disahkan dalam perkhidmatan', ref: '§2.3.1(a)', help: 'gc_confirmed', by: 'sistem' },
-  { key: 'permanent', label: 'Lantikan tetap', ref: '§2.3.4(b)', help: 'gc_permanent', by: 'sistem' },
-  { key: 'lppt', label: 'Purata markah LPPT 3 tahun terkini sekurang-kurangnya 80%', ref: '§2.3.2(a)', help: 'gc_lppt', by: 'sistem' },
-  { key: 'discipline', label: 'Bebas daripada hukuman tatatertib', ref: '§2.3.1(d), §2.3.5', help: 'gc_discipline', by: 'sistem' },
-  { key: 'service', label: 'Tempoh perkhidmatan / kelayakan akademik mencukupi', ref: '§6.2 nota (c)–(e)', help: 'gc_service', by: 'sistem', onlyTo: ['DS13'] },
-  { key: 'asset', label: 'Telah mengisytiharkan harta', ref: '§2.3.1(e)', help: 'gc_asset', by: 'pejabat' },
-  { key: 'sprm', label: 'Lulus tapisan keutuhan SPRM', ref: '§2.3.1(f)', help: 'gc_sprm', by: 'pejabat' },
-  { key: 'loan', label: 'Bebas daripada senarai peminjam pendidikan tegar', ref: '§2.3.1(g)', help: 'gc_loan', by: 'pejabat' },
-  { key: 'dean', label: 'Diperakukan oleh Dekan / Pengarah', ref: '§2.3.1(c)', help: 'gc_dean', by: 'fakulti' },
-  { key: 'kesepakaran', label: 'Diperakukan oleh Jawatankuasa Kesepakaran Fakulti', ref: '§2.3.1(c)', help: 'gc_kesepakaran', by: 'fakulti' },
+  { key: 'confirmed', label: 'Telah disahkan dalam perkhidmatan', ref: 'Perenggan 2.3.1(a)', help: 'gc_confirmed', by: 'sistem' },
+  { key: 'permanent', label: 'Lantikan tetap', ref: 'Perenggan 2.3.4(b)', help: 'gc_permanent', by: 'sistem' },
+  { key: 'lppt', label: 'Purata markah LPPT 3 tahun terkini sekurang-kurangnya 80%', ref: 'Perenggan 2.3.2(a)', help: 'gc_lppt', by: 'sistem' },
+  { key: 'discipline', label: 'Bebas daripada hukuman tatatertib', ref: 'Perenggan 2.3.1(d), 2.3.5', help: 'gc_discipline', by: 'sistem' },
+  { key: 'service', label: 'Tempoh perkhidmatan / kelayakan akademik mencukupi', ref: 'Perenggan 6.2 nota (c)–(e)', help: 'gc_service', by: 'sistem', onlyTo: ['DS13'] },
+  { key: 'asset', label: 'Telah mengisytiharkan harta', ref: 'Perenggan 2.3.1(e)', help: 'gc_asset', by: 'pejabat' },
+  { key: 'sprm', label: 'Lulus tapisan keutuhan SPRM', ref: 'Perenggan 2.3.1(f)', help: 'gc_sprm', by: 'pejabat' },
+  { key: 'loan', label: 'Bebas daripada senarai peminjam pendidikan tegar', ref: 'Perenggan 2.3.1(g)', help: 'gc_loan', by: 'pejabat' },
+  { key: 'dean', label: 'Diperakukan oleh Dekan / Pengarah', ref: 'Perenggan 2.3.1(c)', help: 'gc_dean', by: 'fakulti' },
+  { key: 'kesepakaran', label: 'Diperakukan oleh Jawatankuasa Kesepakaran Fakulti', ref: 'Perenggan 2.3.1(c)', help: 'gc_kesepakaran', by: 'fakulti' },
 ];
 
-// ---------- Proses & carta alir (§5) ----------
+// ---------- Proses & carta alir (Perenggan 5) ----------
 // Setiap langkah: siapa bertindak, apa yang berlaku (bahasa biasa) dan perkara yang disemak oleh pentadbir.
 export const STEPS = [
-  { id: 'draf', no: 1, short: 'Sediakan', title: 'Calon menyediakan permohonan', who: ['Calon'], ref: '§5.2.1', what: 'Calon mengisi maklumat, memastikan semua syarat wajib dipenuhi dan melampirkan bukti, kemudian menghantar kepada Fakulti.', checks: [] },
-  { id: 'fakulti', no: 2, short: 'Fakulti', title: 'Semakan Fakulti', who: ['Pentadbir Fakulti', 'Dekan / Pengarah', 'Jawatankuasa Kesepakaran'], ref: '§3.2, §3.3, §4.3, §5.2.2', what: 'Pentadbir menyemak kelengkapan; Dekan mengesahkan borang; Jawatankuasa Kesepakaran menilai permohonan (Lampiran 2) dan hanya memperakukan calon yang benar-benar layak. Bagi Profesor Madya / Profesor, Jawatankuasa mencalonkan 5 Penilai Luar.', checks: [
+  { id: 'draf', no: 1, short: 'Sediakan', title: 'Calon menyediakan permohonan', who: ['Calon'], ref: 'Perenggan 5.2.1', what: 'Calon mengisi maklumat, memastikan semua syarat wajib dipenuhi dan melampirkan bukti, kemudian menghantar kepada Fakulti.', checks: [] },
+  { id: 'fakulti', no: 2, short: 'Fakulti', title: 'Semakan Fakulti', who: ['Pentadbir Fakulti', 'Dekan / Pengarah', 'Jawatankuasa Kesepakaran'], ref: 'Perenggan 3.2, 3.3, 4.3, 5.2.2', what: 'Pentadbir menyemak kelengkapan; Dekan mengesahkan borang; Jawatankuasa Kesepakaran menilai permohonan (Lampiran 2) dan hanya memperakukan calon yang benar-benar layak. Bagi Profesor Madya / Profesor, Jawatankuasa mencalonkan 5 Penilai Luar.', checks: [
     { key: 'lengkap', label: 'Permohonan dan dokumen sokongan lengkap', help: 'chk_lengkap' },
     { key: 'dean', label: 'Dekan / Pengarah telah mengesahkan borang permohonan dan senarai semak', help: 'chk_dean' },
     { key: 'kesepakaran', label: 'Jawatankuasa Kesepakaran memperakukan calon (Lampiran 2)', help: 'chk_kesepakaran' },
     { key: 'minit', label: 'Minit mesyuarat Jawatankuasa Kesepakaran disertakan', help: 'chk_minit' },
   ] },
-  { id: 'pendaftar', no: 3, short: 'Pendaftar', title: 'Semakan Pejabat Pendaftar', who: ['Urus Setia (Bahagian Pengurusan Sumber Manusia)'], ref: '§3.4, §5.2.2', what: 'Urus Setia memastikan dokumen lengkap dan mengesahkan setiap syarat umum dipenuhi sebelum dibawa ke Jawatankuasa Saringan.', checks: [
+  { id: 'pendaftar', no: 3, short: 'Pendaftar', title: 'Semakan Pejabat Pendaftar', who: ['Urus Setia (Bahagian Pengurusan Sumber Manusia)'], ref: 'Perenggan 3.4, 5.2.2', what: 'Urus Setia memastikan dokumen lengkap dan mengesahkan setiap syarat umum dipenuhi sebelum dibawa ke Jawatankuasa Saringan.', checks: [
     { key: 'asset', label: 'Surat kelulusan pengisytiharan harta diterima', help: 'gc_asset' },
     { key: 'sprm', label: 'Borang tapisan keutuhan SPRM diterima dan lulus', help: 'gc_sprm' },
     { key: 'loan', label: 'Calon bebas daripada senarai peminjam pendidikan tegar', help: 'gc_loan' },
     { key: 'beban', label: 'Beban tugas akademik dan penilaian pengajaran (3 tahun / 6 semester) disertakan', help: 'chk_beban' },
   ] },
-  { id: 'saringan', no: 4, short: 'Saringan', title: 'Saringan — layak ke temuduga?', who: ['Jawatankuasa Saringan'], ref: '§4.2, §5.3.2', what: 'Jawatankuasa Saringan menilai permohonan dan memutuskan sama ada calon layak dibawa ke sesi temuduga. Calon yang gagal dimaklumkan melalui surat.', checks: [
+  { id: 'saringan', no: 4, short: 'Saringan', title: 'Saringan — layak ke temuduga?', who: ['Jawatankuasa Saringan'], ref: 'Perenggan 4.2, 5.3.2', what: 'Jawatankuasa Saringan menilai permohonan dan memutuskan sama ada calon layak dibawa ke sesi temuduga. Calon yang gagal dimaklumkan melalui surat.', checks: [
     { key: 'layak', label: 'Calon memenuhi syarat skim dan kriteria minimum untuk ke temuduga', help: 'chk_layak' },
   ] },
-  { id: 'penilai', no: 5, short: 'Penilai Luar', title: 'Laporan Penilai Luar', who: ['Urus Setia', 'Penilai Luar'], ref: '§3.5, §5.3.2', what: 'Hanya untuk Profesor Madya dan Profesor: tiga (3) Penilai Luar bergred lebih tinggi menyerahkan laporan penilaian. Calon Pensyarah Kanan (DS13) melangkau langkah ini.', checks: [
+  { id: 'penilai', no: 5, short: 'Penilai Luar', title: 'Laporan Penilai Luar', who: ['Urus Setia', 'Penilai Luar'], ref: 'Perenggan 3.5, 5.3.2', what: 'Hanya untuk Profesor Madya dan Profesor: tiga (3) Penilai Luar bergred lebih tinggi menyerahkan laporan penilaian. Calon Pensyarah Kanan (DS13) melangkau langkah ini.', checks: [
     { key: 'tiga', label: 'Tiga (3) Penilai Luar telah dipilih dan memenuhi kriteria pemilihan', help: 'chk_tiga' },
     { key: 'laporan', label: 'Ketiga-tiga laporan Penilai Luar telah diterima', help: 'chk_laporan' },
   ], skipFor: (g) => !needsExternalAssessors(g) },
-  { id: 'pemilih', no: 6, short: 'Pemilih', title: 'Temuduga & Jawatankuasa Pemilih', who: ['Jawatankuasa Pemilih Kenaikan Pangkat'], ref: '§4.1, §5.3.2', what: 'Calon dipanggil temuduga. Jawatankuasa Pemilih bersidang dan memilih calon yang layak dinaikkan pangkat (Profesor: dipengerusikan Naib Canselor; selain Profesor: Timbalan Naib Canselor Akademik & Antarabangsa).', checks: [
+  { id: 'pemilih', no: 6, short: 'Pemilih', title: 'Temuduga & Jawatankuasa Pemilih', who: ['Jawatankuasa Pemilih Kenaikan Pangkat'], ref: 'Perenggan 4.1, 5.3.2', what: 'Calon dipanggil temuduga. Jawatankuasa Pemilih bersidang dan memilih calon yang layak dinaikkan pangkat (Profesor: dipengerusikan Naib Canselor; selain Profesor: Timbalan Naib Canselor Akademik & Antarabangsa).', checks: [
     { key: 'temuduga', label: 'Temuduga telah dijalankan', help: 'chk_temuduga' },
     { key: 'pilih', label: 'Jawatankuasa Pemilih memilih calon', help: 'chk_pilih' },
   ] },
-  { id: 'lpu', no: 7, short: 'LPU', title: 'Kelulusan / Pemakluman LPU', who: ['Lembaga Pengarah Universiti (LPU)'], ref: '§5.3.3', what: 'Jawatan selain Profesor: dibawa ke mesyuarat LPU untuk pemakluman. Jawatan Profesor: dibawa ke LPU untuk pertimbangan dan kelulusan.', checks: [
+  { id: 'lpu', no: 7, short: 'LPU', title: 'Kelulusan / Pemakluman LPU', who: ['Lembaga Pengarah Universiti (LPU)'], ref: 'Perenggan 5.3.3', what: 'Jawatan selain Profesor: dibawa ke mesyuarat LPU untuk pemakluman. Jawatan Profesor: dibawa ke LPU untuk pertimbangan dan kelulusan.', checks: [
     { key: 'lpu', label: 'Perkara telah dibawa ke mesyuarat LPU', help: 'chk_lpu' },
   ] },
-  { id: 'syarahan', no: 8, short: 'Syarahan', title: 'Syarahan Ilmiah / Perdana', who: ['Calon'], ref: '§2.1(z), §5.3.3', what: 'Hanya untuk jawatan Profesor: VK7 menyampaikan Syarahan Ilmiah; VK6 / VK5 menyampaikan Syarahan Perdana. Selepas itu surat tawaran dikeluarkan.', checks: [
+  { id: 'syarahan', no: 8, short: 'Syarahan', title: 'Syarahan Ilmiah / Perdana', who: ['Calon'], ref: 'Perenggan 2.1(z), 5.3.3', what: 'Hanya untuk jawatan Profesor: VK7 menyampaikan Syarahan Ilmiah; VK6 / VK5 menyampaikan Syarahan Perdana. Selepas itu surat tawaran dikeluarkan.', checks: [
     { key: 'syarahan', label: 'Syarahan telah disampaikan', help: 'chk_syarahan' },
   ], skipFor: (g) => !isProfessorGrade(g) },
-  { id: 'berjaya', no: 9, short: 'Selesai', title: 'Berjaya — surat tawaran dikeluarkan', who: ['Urus Setia'], ref: '§3.4(iii), §5.3.3', what: 'Surat tawaran kenaikan pangkat dikeluarkan kepada calon.', checks: [], final: true },
+  { id: 'berjaya', no: 9, short: 'Selesai', title: 'Berjaya — surat tawaran dikeluarkan', who: ['Urus Setia'], ref: 'Perenggan 3.4(iii), 5.3.3', what: 'Surat tawaran kenaikan pangkat dikeluarkan kepada calon.', checks: [], final: true },
 ];
 export const STEP = Object.fromEntries(STEPS.map((s) => [s.id, s]));
 // Urutan langkah sebenar bagi sesuatu gred sasaran (melangkau yang tidak berkaitan).
@@ -252,12 +252,12 @@ export const STATUS_LABEL = {
   draf: 'Draf', fakulti: 'Semakan Fakulti', pendaftar: 'Semakan Pejabat Pendaftar', saringan: 'Saringan', penilai: 'Penilai Luar', pemilih: 'Temuduga & Pemilih', lpu: 'Kelulusan LPU', syarahan: 'Syarahan', berjaya: 'Berjaya',
   tidak_berjaya: 'Tidak berjaya', rayuan: 'Rayuan sedang disemak', rayuan_berjaya: 'Rayuan berjaya', rayuan_ditolak: 'Rayuan ditolak (muktamad)', ditarik_balik: 'Kenaikan pangkat ditarik balik',
 };
-export const APPEAL_DAYS = 30; // §2.7.2.1
+export const APPEAL_DAYS = 30; // Perenggan 2.7.2.1
 
-// ---------- Penilai Luar (§3.5) ----------
+// ---------- Penilai Luar (Perenggan 3.5) ----------
 export const ASSESSOR_RULES = {
   needed: 3, nominated: 5, honorarium: { 'Dalam Negara': 'RM300', 'Luar Negara': 'USD100' },
-  hIndexMin: { 'Sains & Teknologi': 10, Klinikal: 10, 'Sains Sosial': 7 }, // §3.5.8(ii)
+  hIndexMin: { 'Sains & Teknologi': 10, Klinikal: 10, 'Sains Sosial': 7 }, // Perenggan 3.5.8(ii)
   checks: [
     { key: 'sameInst', label: 'Bukan dari institusi yang sama dengan calon semasa tempoh pengajian calon', help: 'as_sameInst' },
     { key: 'neverUpnm', label: 'Tidak pernah berkhidmat di UPNM dalam tempoh yang sama dengan calon', help: 'as_neverUpnm' },
@@ -267,31 +267,31 @@ export const ASSESSOR_RULES = {
   ],
 };
 
-// ---------- Jawatankuasa (§4) — untuk paparan rujukan ----------
+// ---------- Jawatankuasa (Perenggan 4) — untuk paparan rujukan ----------
 export const COMMITTEES = [
-  { name: 'Jawatankuasa Kesepakaran Fakulti / Pusat / Akademi', chair: 'Dekan / Pengarah', members: '3 Profesor (dilantik TNC Akademik & Antarabangsa), 2 pensyarah setara/lebih tinggi dalam bidang calon, 1 wakil pengurusan fakulti', ref: '§4.3', role: 'Menilai dan hanya memperakukan calon yang benar-benar layak; menamakan Penilai Luar.' },
-  { name: 'Jawatankuasa Saringan (selain Profesor)', chair: 'TNC (Hal Ehwal Pelajar & Alumni / Penyelidikan & Inovasi)', members: 'Dekan/Pengarah berkenaan, 2 wakil Profesor dalam Senat, Bendahari', ref: '§4.2.2', role: 'Memperakukan calon yang layak ke temuduga dan memberi ulasan terperinci.' },
-  { name: 'Jawatankuasa Saringan (Profesor)', chair: 'TNC (Akademik & Antarabangsa)', members: 'Semua TNC, Dekan/Pengarah berkenaan, 2 wakil Profesor dalam Senat, Bendahari', ref: '§4.2.1', role: 'Sama seperti di atas, bagi jawatan Profesor.' },
-  { name: 'Jawatankuasa Pemilih (selain Profesor)', chair: 'TNC (Akademik & Antarabangsa)', members: '2 ahli Senat, Dekan/Pengarah berkenaan', ref: '§4.1.2', role: 'Menimbang, memperaku dan meluluskan kenaikan pangkat; menetapkan gaji permulaan.' },
-  { name: 'Jawatankuasa Pemilih (Profesor)', chair: 'Naib Canselor', members: '2 ahli Lembaga Pengarah, 2 ahli Senat, Dekan/Pengarah berkenaan', ref: '§4.1.1', role: 'Memperakukan kenaikan pangkat ke jawatan Profesor.' },
-  { name: 'Jawatankuasa Rayuan', chair: 'Seorang daripada 4 ahli akademik berwibawa', members: 'Dilantik ad-hoc oleh Naib Canselor; berkecuali daripada proses Pemilih', ref: '§4.4', role: 'Menimbang rayuan calon. Keputusan muktamad.' },
+  { name: 'Jawatankuasa Kesepakaran Fakulti / Pusat / Akademi', chair: 'Dekan / Pengarah', members: '3 Profesor (dilantik TNC Akademik & Antarabangsa), 2 pensyarah setara/lebih tinggi dalam bidang calon, 1 wakil pengurusan fakulti', ref: 'Perenggan 4.3', role: 'Menilai dan hanya memperakukan calon yang benar-benar layak; menamakan Penilai Luar.' },
+  { name: 'Jawatankuasa Saringan (selain Profesor)', chair: 'TNC (Hal Ehwal Pelajar & Alumni / Penyelidikan & Inovasi)', members: 'Dekan/Pengarah berkenaan, 2 wakil Profesor dalam Senat, Bendahari', ref: 'Perenggan 4.2.2', role: 'Memperakukan calon yang layak ke temuduga dan memberi ulasan terperinci.' },
+  { name: 'Jawatankuasa Saringan (Profesor)', chair: 'TNC (Akademik & Antarabangsa)', members: 'Semua TNC, Dekan/Pengarah berkenaan, 2 wakil Profesor dalam Senat, Bendahari', ref: 'Perenggan 4.2.1', role: 'Sama seperti di atas, bagi jawatan Profesor.' },
+  { name: 'Jawatankuasa Pemilih (selain Profesor)', chair: 'TNC (Akademik & Antarabangsa)', members: '2 ahli Senat, Dekan/Pengarah berkenaan', ref: 'Perenggan 4.1.2', role: 'Menimbang, memperaku dan meluluskan kenaikan pangkat; menetapkan gaji permulaan.' },
+  { name: 'Jawatankuasa Pemilih (Profesor)', chair: 'Naib Canselor', members: '2 ahli Lembaga Pengarah, 2 ahli Senat, Dekan/Pengarah berkenaan', ref: 'Perenggan 4.1.1', role: 'Memperakukan kenaikan pangkat ke jawatan Profesor.' },
+  { name: 'Jawatankuasa Rayuan', chair: 'Seorang daripada 4 ahli akademik berwibawa', members: 'Dilantik ad-hoc oleh Naib Canselor; berkecuali daripada proses Pemilih', ref: 'Perenggan 4.4', role: 'Menimbang rayuan calon. Keputusan muktamad.' },
 ];
 
 // ---------- Soalan lazim (Panduan) — bahasa biasa ----------
 export const FAQ = [
-  { q: 'Apakah itu kenaikan pangkat staf akademik?', a: 'Peningkatan secara hakiki daripada satu gred ke gred yang lebih tinggi dalam skim yang sama, dengan kelulusan Lembaga / Jawatankuasa Pemilih (§2.1(i)). Ia bukan berdasarkan kekosongan jawatan (§1.6).', ref: '§1.6, §2.1' },
-  { q: 'Siapa yang layak memohon?', a: 'Calon yang disahkan dalam perkhidmatan, lantikan tetap, purata LPPT 3 tahun terkini sekurang-kurangnya 80%, bebas hukuman tatatertib, telah mengisytiharkan harta, lulus tapisan SPRM, bebas senarai peminjam pendidikan tegar, diperakukan Dekan dan Jawatankuasa Kesepakaran, serta memenuhi syarat wajib minimum bagi gred yang dipohon.', ref: '§2.3' },
-  { q: 'Apakah laluan gred yang dilindungi sistem ini?', a: 'Pensyarah Universiti DS11 → Pensyarah Kanan DS13 → Profesor Madya DS14 → Profesor VK7 → VK6 → VK5. (Guru Bahasa dan Pensyarah Perubatan "time-based" ada dalam Garis Panduan tetapi belum disokong dalam sistem ini.)', ref: '§1.3' },
-  { q: 'Aktiviti manakah yang dikira?', a: 'Bagi DS13, hanya aktiviti ketika di Gred DS11. Bagi DS14 dan VK7, kumulatif sejak lantikan di UPNM. Bagi VK6 dan VK5, kumulatif sejak di Gred VK7. Penyeliaan, penyelidikan, penerbitan dan perundingan mesti berdaftar di bawah Pusat Pengurusan Penyelidikan dan Inovasi (PPI).', ref: '§6.2–6.6 nota' },
-  { q: 'Apakah beza Geran Dalam dan Geran Luar?', a: 'Geran Dalam ialah geran UPNM yang peruntukannya diluluskan PPI. Geran Luar ialah geran industri, Kementerian Pendidikan Tinggi (KPT), agensi kerajaan dan antarabangsa.', ref: '§6.3 nota (b)–(c)' },
-  { q: 'Apakah yang dikira sebagai perundingan?', a: 'Khidmat dalam bidang kepakaran untuk menyelesaikan masalah pihak yang melantik, berdaftar di bawah PPI, sama ada berkewangan atau tidak. TIDAK dikira: peserta/pembentang persidangan, penceramah jemputan, pemeriksa tesis, penilai kenaikan pangkat, penyunting jurnal, tenaga pengajar program eksekutif, hakim/juri, dan semua lantikan dalaman UPNM.', ref: '§2.1(v)' },
-  { q: 'Bagaimana penerbitan bukan artikel SCOPUS dikira?', a: '1 bab buku (penulis utama, penerbit bertauliah) = 1 artikel SCOPUS; 1 buku = 3; 1 artikel WoS/ISI (utama) = 2; 1 artikel Zulfaqar (utama) = 1 (maksimum 5); 1 kertas polisi antarabangsa = 2, kebangsaan = 1; 10 penulisan popular = 1.', ref: '§6.7.1–6.7.2' },
-  { q: 'Bagaimana penyeliaan disetarakan?', a: '1 pelajar Sarjana (Penyelidikan) bergraduat = 3 pelajar Sarjana (Kerja Kursus). 1 PhD (penyelia bersama) = 3 Sarjana (Kerja Kursus). 1 PhD (penyelia utama) = 3 Sarjana Klinikal. Tidak boleh sebaliknya.', ref: '§6.7.3' },
-  { q: 'Berapa lama tempoh tidak layak jika pernah dihukum tatatertib?', a: 'Amaran 12 bulan, Denda 18, Lucut Hak Emolumen 24, Tangguh Pergerakan Gaji 30, Turun Gaji 36, Turun Pangkat 48 — dikira dari tarikh hukuman. Jika beberapa hukuman bertindih, tempoh berakhir apabila keseluruhannya tamat. Gunakan Kalkulator di bawah.', ref: '§2.3.5–2.3.8' },
-  { q: 'Siapa Penilai Luar dan berapa orang diperlukan?', a: 'Hanya untuk Profesor Madya dan Profesor: 3 penilai bergred lebih tinggi (dalam / luar negara) daripada 5 yang dicalonkan Fakulti. Mesti H-Index SCOPUS sekurang-kurangnya 10 (Sains & Teknologi / Klinikal) atau 7 (Sains Sosial), bukan dari institusi sama, tidak pernah berkhidmat di UPNM, bukan penyelia tesis atau rakan setugas calon. Honorarium RM300 (dalam negara) / USD100 (luar negara).', ref: '§3.5' },
-  { q: 'Apa yang berlaku jika permohonan tidak berjaya?', a: 'Calon dimaklumkan melalui surat. Calon yang terkilan boleh merayu secara bertulis dalam tempoh 30 hari dari tarikh keputusan dimaklumkan, melalui Ketua Jabatan. Keputusan Jawatankuasa Rayuan adalah muktamad.', ref: '§2.7–2.8' },
-  { q: 'Bolehkah kenaikan pangkat ditarik balik?', a: 'Ya, jika terdapat kesilapan fakta yang dimaklumkan kemudian. Penyiasatan dibuat dan calon diberi peluang menjelaskan. Keputusan dimaklumkan melalui Ketua Jabatan.', ref: '§2.6' },
-  { q: 'Apakah Syarahan Ilmiah dan Syarahan Perdana?', a: 'Syarat tambahan jawatan Profesor. Syarahan Ilmiah: VK7, selepas berjaya temuduga; gaji hanya bergerak selepas syarahan. Syarahan Perdana: VK6 / VK5; VK6 juga memerlukan Monograf yang dihasilkan ketika di VK7.', ref: '§2.1(z), §6.5' },
+  { q: 'Apakah itu kenaikan pangkat staf akademik?', a: 'Peningkatan secara hakiki daripada satu gred ke gred yang lebih tinggi dalam skim yang sama, dengan kelulusan Lembaga / Jawatankuasa Pemilih (Perenggan 2.1(i)). Ia bukan berdasarkan kekosongan jawatan (1.6).', ref: 'Perenggan 1.6, 2.1' },
+  { q: 'Siapa yang layak memohon?', a: 'Calon yang disahkan dalam perkhidmatan, lantikan tetap, purata LPPT 3 tahun terkini sekurang-kurangnya 80%, bebas hukuman tatatertib, telah mengisytiharkan harta, lulus tapisan SPRM, bebas senarai peminjam pendidikan tegar, diperakukan Dekan dan Jawatankuasa Kesepakaran, serta memenuhi syarat wajib minimum bagi gred yang dipohon.', ref: 'Perenggan 2.3' },
+  { q: 'Apakah laluan gred yang dilindungi sistem ini?', a: 'Pensyarah Universiti DS11 → Pensyarah Kanan DS13 → Profesor Madya DS14 → Profesor VK7 → VK6 → VK5. (Guru Bahasa dan Pensyarah Perubatan "time-based" ada dalam Garis Panduan tetapi belum disokong dalam sistem ini.)', ref: 'Perenggan 1.3' },
+  { q: 'Aktiviti manakah yang dikira?', a: 'Bagi DS13, hanya aktiviti ketika di Gred DS11. Bagi DS14 dan VK7, kumulatif sejak lantikan di UPNM. Bagi VK6 dan VK5, kumulatif sejak di Gred VK7. Penyeliaan, penyelidikan, penerbitan dan perundingan mesti berdaftar di bawah Pusat Pengurusan Penyelidikan dan Inovasi (PPI).', ref: 'Perenggan 6.2–6.6 nota' },
+  { q: 'Apakah beza Geran Dalam dan Geran Luar?', a: 'Geran Dalam ialah geran UPNM yang peruntukannya diluluskan PPI. Geran Luar ialah geran industri, Kementerian Pendidikan Tinggi (KPT), agensi kerajaan dan antarabangsa.', ref: 'Perenggan 6.3 nota (b)–(c)' },
+  { q: 'Apakah yang dikira sebagai perundingan?', a: 'Khidmat dalam bidang kepakaran untuk menyelesaikan masalah pihak yang melantik, berdaftar di bawah PPI, sama ada berkewangan atau tidak. TIDAK dikira: peserta/pembentang persidangan, penceramah jemputan, pemeriksa tesis, penilai kenaikan pangkat, penyunting jurnal, tenaga pengajar program eksekutif, hakim/juri, dan semua lantikan dalaman UPNM.', ref: 'Perenggan 2.1(v)' },
+  { q: 'Bagaimana penerbitan bukan artikel SCOPUS dikira?', a: '1 bab buku (penulis utama, penerbit bertauliah) = 1 artikel SCOPUS; 1 buku = 3; 1 artikel WoS/ISI (utama) = 2; 1 artikel Zulfaqar (utama) = 1 (maksimum 5); 1 kertas polisi antarabangsa = 2, kebangsaan = 1; 10 penulisan popular = 1.', ref: 'Perenggan 6.7.1–6.7.2' },
+  { q: 'Bagaimana penyeliaan disetarakan?', a: '1 pelajar Sarjana (Penyelidikan) bergraduat = 3 pelajar Sarjana (Kerja Kursus). 1 PhD (penyelia bersama) = 3 Sarjana (Kerja Kursus). 1 PhD (penyelia utama) = 3 Sarjana Klinikal. Tidak boleh sebaliknya.', ref: 'Perenggan 6.7.3' },
+  { q: 'Berapa lama tempoh tidak layak jika pernah dihukum tatatertib?', a: 'Amaran 12 bulan, Denda 18, Lucut Hak Emolumen 24, Tangguh Pergerakan Gaji 30, Turun Gaji 36, Turun Pangkat 48 — dikira dari tarikh hukuman. Jika beberapa hukuman bertindih, tempoh berakhir apabila keseluruhannya tamat. Gunakan Kalkulator di bawah.', ref: 'Perenggan 2.3.5–2.3.8' },
+  { q: 'Siapa Penilai Luar dan berapa orang diperlukan?', a: 'Hanya untuk Profesor Madya dan Profesor: 3 penilai bergred lebih tinggi (dalam / luar negara) daripada 5 yang dicalonkan Fakulti. Mesti H-Index SCOPUS sekurang-kurangnya 10 (Sains & Teknologi / Klinikal) atau 7 (Sains Sosial), bukan dari institusi sama, tidak pernah berkhidmat di UPNM, bukan penyelia tesis atau rakan setugas calon. Honorarium RM300 (dalam negara) / USD100 (luar negara).', ref: 'Perenggan 3.5' },
+  { q: 'Apa yang berlaku jika permohonan tidak berjaya?', a: 'Calon dimaklumkan melalui surat. Calon yang terkilan boleh merayu secara bertulis dalam tempoh 30 hari dari tarikh keputusan dimaklumkan, melalui Ketua Jabatan. Keputusan Jawatankuasa Rayuan adalah muktamad.', ref: 'Perenggan 2.7–2.8' },
+  { q: 'Bolehkah kenaikan pangkat ditarik balik?', a: 'Ya, jika terdapat kesilapan fakta yang dimaklumkan kemudian. Penyiasatan dibuat dan calon diberi peluang menjelaskan. Keputusan dimaklumkan melalui Ketua Jabatan.', ref: 'Perenggan 2.6' },
+  { q: 'Apakah Syarahan Ilmiah dan Syarahan Perdana?', a: 'Syarat tambahan jawatan Profesor. Syarahan Ilmiah: VK7, selepas berjaya temuduga; gaji hanya bergerak selepas syarahan. Syarahan Perdana: VK6 / VK5; VK6 juga memerlukan Monograf yang dihasilkan ketika di VK7.', ref: 'Perenggan 2.1(z), 6.5' },
 ];
 
 // ---------- Teks bantuan jenis penerbitan / lampiran ----------

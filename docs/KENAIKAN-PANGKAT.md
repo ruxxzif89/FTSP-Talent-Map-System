@@ -1,6 +1,6 @@
 # Modul Kenaikan Pangkat — panduan reka bentuk dan penggunaan
 
-Modul ini melaksanakan **Garis Panduan Kenaikan Pangkat Staf Akademik UPNM (Edisi 2025, LPU 28 Ogos 2025)** di dalam Peta Bakat FSTP. Dokumen PDF Garis Panduan tidak disertakan dalam repositori (fail peribadi); semua peraturan dikodkan sebagai **data** dalam `js/promotion/guideline.js` dengan rujukan perenggan (§).
+Modul ini melaksanakan **Garis Panduan Kenaikan Pangkat Staf Akademik UPNM (Edisi 2025, LPU 28 Ogos 2025)** di dalam Peta Bakat FSTP. Dokumen PDF Garis Panduan tidak disertakan dalam repositori (fail peribadi); semua peraturan dikodkan sebagai **data** dalam `js/promotion/guideline.js` dengan rujukan perenggan (Perenggan ).
 
 ## Prinsip: mesti mesra pengguna dan mesra pentadbir
 
@@ -8,7 +8,7 @@ Garis Panduan itu rumit (108 halaman). Sistem ini menyembunyikan kerumitannya di
 
 - **Pensyarah**: satu halaman (`#/kp`) — gred sekarang → sasaran, cincin kesediaan, "3 perkara paling penting", dan **satu** butang utama (Mulakan permohonan / Lihat status). Butang "Tambah rekod" membuka borang dengan jenis rekod yang betul.
 - **Pentadbir**: papan kerja (`#/kp-admin`) dengan tab *Perlu tindakan / Semua / Calon berpotensi*; butiran permohonan menunjukkan **satu langkah semasa**, siapa yang bertindak, senarai semak, dan butang keputusan dalam bahasa biasa.
-- **Butang "?"** di sebelah setiap istilah / butang yang kelihatan rumit (kira-kira 150 entri dalam `js/help.js`, dengan rujukan §). Butang **Bantuan** di bar atas menerangkan halaman semasa. Borang menyembunyikan medan kenaikan pangkat di bawah bahagian pilihan yang dilipat, dan medan lain muncul hanya apabila relevan (contoh: jenis aktiviti).
+- **Butang "?"** di sebelah setiap istilah / butang yang kelihatan rumit (kira-kira 150 entri dalam `js/help.js`, dengan rujukan Perenggan ). Butang **Bantuan** di bar atas menerangkan halaman semasa. Borang menyembunyikan medan kenaikan pangkat di bawah bahagian pilihan yang dilipat, dan medan lain muncul hanya apabila relevan (contoh: jenis aktiviti).
 - **Demo berpandu** (`#/demo-kp`): tiga cerita yang menjalankan **enjin sebenar** pada data fiksyen dalam ingatan.
 
 ## Laluan gred yang dilindungi
@@ -23,7 +23,7 @@ DS11 → DS13 → DS14 → VK7 → VK6 → VK5. (Laluan Guru Bahasa dan Pensyara
 | DS14, VK7 | kumulatif sejak lantikan di UPNM (`appointed_on`) |
 | VK6, VK5 | kumulatif sejak di Gred VK7 (`vk7_since`) |
 
-Hanya penerbitan berstatus *Diterbitkan*, penyelidikan / perundingan yang *berdaftar di PPI*, dan penyeliaan yang *bergraduat* dikira. Kesetaraan §6.7 (1 bab = 1 SCOPUS, 1 buku = 3, 1 WoS = 2; 1 Sarjana Penyelidikan = 3 Kerja Kursus) dan penggabungan tempoh tatatertib (§2.3.5–2.3.8) dilaksanakan dalam `engine.js` dan diuji.
+Hanya penerbitan berstatus *Diterbitkan*, penyelidikan / perundingan yang *berdaftar di PPI*, dan penyeliaan yang *bergraduat* dikira. Kesetaraan Perenggan 6.7 (1 bab = 1 SCOPUS, 1 buku = 3, 1 WoS = 2; 1 Sarjana Penyelidikan = 3 Kerja Kursus) dan penggabungan tempoh tatatertib (2.3.5–2.3.8) dilaksanakan dalam `engine.js` dan diuji.
 
 ## Aliran kerja permohonan
 

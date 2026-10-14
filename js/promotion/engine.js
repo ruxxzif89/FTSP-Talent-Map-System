@@ -17,7 +17,7 @@ export const addDays = (date, n) => { const d = utc(date); d.setUTCDate(d.getUTC
 export const iso = (d) => utc(d).toISOString().slice(0, 10);
 export const daysBetween = (a, b) => Math.round((utc(b) - utc(a)) / 864e5);
 
-// ---------- Tatatertib: tempoh tidak layak (§2.3.5–2.3.8) ----------
+// ---------- Tatatertib: tempoh tidak layak (Perenggan 2.3.5–2.3.8) ----------
 // Setiap hukuman → [tarikh, tarikh + tempoh - 1 hari]. Hukuman berlainan pertuduhan yang bertindih digabungkan.
 export function disciplineBlocks(records, today = new Date()) {
   const periods = [];
@@ -28,10 +28,10 @@ export function disciplineBlocks(records, today = new Date()) {
     const from = utc(r.date), to = addDays(addMonths(from, months), -1);
     const key = r.case_no || r.id;
     const cur = byCase.get(key);
-    if (!cur || to > cur.to) byCase.set(key, { from, to, penalty: r.penalty, case_no: r.case_no, months }); // satu pertuduhan, beberapa hukuman → ambil yang lebih berat (§2.3.7)
+    if (!cur || to > cur.to) byCase.set(key, { from, to, penalty: r.penalty, case_no: r.case_no, months }); // satu pertuduhan, beberapa hukuman → ambil yang lebih berat (Perenggan 2.3.7)
   }
   const list = [...byCase.values()].sort((a, b) => a.from - b.from);
-  const merged = []; // §2.3.8: hukuman kes lain semasa tempoh masih berjalan → sehingga keseluruhan tamat
+  const merged = []; // Perenggan 2.3.8: hukuman kes lain semasa tempoh masih berjalan → sehingga keseluruhan tamat
   for (const p of list) {
     const last = merged[merged.length - 1];
     if (last && p.from <= addDays(last.to, 0)) { if (p.to > last.to) last.to = p.to; last.parts.push(p); } else merged.push({ from: p.from, to: p.to, parts: [p] });
@@ -129,7 +129,7 @@ const LEAVES = {
     const r = n.vec; const P = c.sv.phdMain.length, Pc = c.sv.phdCo.length, M = c.sv.mscRes.length, K = c.sv.kk.length;
     const phdSurplus = Math.max(0, P - (r.phdMain || 0));
     const coAvail = Pc + phdSurplus;
-    const kkAvail = K + 3 * Math.max(0, M - (r.mscRes || 0)) + 3 * Math.max(0, coAvail - (r.phdCo || 0)); // §6.7.3: 1 Sarjana Penyelidikan = 3 Kerja Kursus; 1 PhD bersama = 3 Kerja Kursus
+    const kkAvail = K + 3 * Math.max(0, M - (r.mscRes || 0)) + 3 * Math.max(0, coAvail - (r.phdCo || 0)); // Perenggan 6.7.3: 1 Sarjana Penyelidikan = 3 Kerja Kursus; 1 PhD bersama = 3 Kerja Kursus
     const parts = []; const labelParts = []; const gaps = [];
     const add = (key, need, have, name) => { if (!need) return; parts.push(ratio(have, need)); labelParts.push(`${need} ${name}`); if (have < need) gaps.push(`${need - have} ${name}`); };
     add('phdMain', r.phdMain, P, 'pelajar PhD (penyelia utama, bergraduat)');

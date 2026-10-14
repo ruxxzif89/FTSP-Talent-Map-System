@@ -27,7 +27,7 @@ export async function render(root) {
   const cta = active
     ? html`<a class="btn primary" href="#/kp/${active.id}">${icon('arrow', 18)} ${active.status === 'draf' ? 'Teruskan draf permohonan' : 'Lihat status permohonan'}</a>`
     : s.ready ? html`<a class="btn primary" href="#/kp/mohon">${icon('arrow', 18)} Mulakan permohonan</a>`
-      : html`<a class="btn primary" href="#todo">${icon('arrow', 18)} Lihat apa yang masih kurang</a>`;
+      : html`<button class="btn primary" id="gototodo">${icon('arrow', 18)} Semak perkara yang perlu dilengkapkan</button>`;
   const hero = active
     ? html`<h2>Permohonan anda: ${statusBadge(active.status)}</h2><p>Permohonan ke ${gradeLabel(active.to_grade)} sedang berjalan. Klik butang di bawah untuk melihat langkah semasa dan apa yang berlaku seterusnya.</p>`
     : html`<h2>${s.verdictText}</h2><p>${s.ready ? `Semua kriteria wajib bagi ${gradeLabel(ev.to)} telah dipenuhi mengikut rekod anda. Anda boleh memulakan permohonan.` : `${s.metCount} daripada ${s.total} bahagian penilaian telah dipenuhi untuk ${gradeLabel(ev.to)}. Ikuti senarai "perkara paling penting" di bawah untuk melengkapkan rekod anda.`}</p>`;
@@ -44,6 +44,7 @@ export async function render(root) {
     <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr))">${ev.components.map((c) => componentCard(c))}</div>
     <section class="card" style="margin-top:18px"><h3>Syarat umum</h3><p class="small muted" style="margin:-6px 0 8px">Sistem menyemak yang boleh disemak; yang lain disahkan oleh Pejabat Pendaftar / Fakulti semasa permohonan.</p>${generalList(ev.general)}</section>
     ${history(apps)}`);
+  const gt = root.querySelector('#gototodo'); if (gt) gt.onclick = () => { const t = root.querySelector('#todo') || root.querySelector('.comp'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   const pv = root.querySelector('#pv'); if (pv) pv.onclick = () => openLampiran(lec, active || null);
 }
 
