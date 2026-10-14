@@ -10,7 +10,7 @@ export async function render(root) {
       <section class="hero">
         <div>${logo(72)}</div>
         <h1>TalentPro</h1>
-        <p class="sub">Sistem pemetaan bakat berasaskan web untuk pensyarah FSTP — satu tempat untuk merekod, mengemas kini dan menemui kepakaran.</p>
+        <p class="sub">Web-Based Talent Mapping System for FSTP Lecturers</p>
         <ul><li>${icon('link', 22)} Hubungkan kepakaran</li><li>${icon('search', 22)} Temui bakat</li><li>${icon('users', 22)} Bina kolaborasi</li></ul>
       </section>
       <section class="panel">
